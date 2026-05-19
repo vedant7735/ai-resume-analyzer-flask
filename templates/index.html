@@ -4,129 +4,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Parser</title>
+    <title>Resume Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Playfair+Display:ital,wght@1,700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <div class="container">
-        <h1>📄 Resume Parser</h1>
+    <!-- Upload Section -->
+    <div class="upload-container" id="uploadContainer">
+        <div class="upload-wrapper">
+            <h1 class="hero-title">
+                <span class="title-heavy">RESUME</span>
+                <span class="title-italic">Analyzer</span>
+            </h1>
+            <p class="hero-subtitle">INTELLIGENT PARSING & PROFESSIONAL INSIGHTS</p>
 
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="upload-area" id="uploadArea">
-                <label for="fileInput" class="upload-label">
-                    📁 Click to select or drag & drop PDF file here
-                </label>
-                <input type="file" id="fileInput" name="file" accept=".pdf" required>
-                <div class="file-info" id="fileInfo"></div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <label for="fileInput" class="upload-label">
+                        Drop your resume here or <span class="link-text">browse files</span>
+                    </label>
+                    <input type="file" id="fileInput" name="file" accept=".pdf" required>
+                    <div class="file-info" id="fileInfo"></div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    <span class="btn-text">ANALYZE RESUME</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p class="loading-text">PROCESSING DOCUMENT...</p>
             </div>
 
-            <button type="submit" id="submitBtn">Upload & Extract Text</button>
-        </form>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Processing your resume...</p>
-        </div>
-
-        <div class="error" id="error"></div>
-
-        <div class="result" id="result">
-            <h2>Extracted Text:</h2>
-            <div class="extracted-text" id="extractedText"></div>
+            <div class="error" id="error"></div>
         </div>
     </div>
 
-    <script>
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const uploadForm = document.getElementById('uploadForm');
-        const fileInfo = document.getElementById('fileInfo');
-        const loading = document.getElementById('loading');
-        const error = document.getElementById('error');
-        const result = document.getElementById('result');
-        const extractedText = document.getElementById('extractedText');
-        const submitBtn = document.getElementById('submitBtn');
+    <!-- Dashboard Section -->
+    <div class="dashboard-container" id="dashboardContainer" style="display: none;">
 
-        // Click to upload
-        uploadArea.addEventListener('click', () => {
-            fileInput.click();
-        });
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-left">
+                <h1 class="dashboard-title">
+                    <span class="title-heavy">ANALYSIS</span>
+                    <span class="title-italic">Report</span>
+                </h1>
+                <p class="candidate-name" id="candidateName">REESUME FOR</p>
+            </div>
+            <button class="btn-secondary" id="uploadNewBtn">
+                <span class="btn-text">← UPLOAD NEW</span>
+            </button>
+        </div>
 
-        // File selected
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-            }
-        });
+        <!-- Score Overview -->
+        <div class="score-section">
+            <div class="score-card score-main">
+                <div class="score-label">OVERALL SCORE</div>
+                <div class="score-value" id="overallScore">--</div>
+                <div class="score-bar">
+                    <div class="score-bar-fill" id="overallScoreBar"></div>
+                </div>
+                <div class="score-explanation" id="scoreExplanation"></div>
+            </div>
 
-        // Drag and drop
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+            <div class="score-breakdown">
+                <div class="breakdown-item">
+                    <div class="breakdown-label">CONTENT</div>
+                    <div class="breakdown-score" id="contentScore">--</div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-bar-fill" id="contentBar"></div>
+                    </div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">STRUCTURE</div>
+                    <div class="breakdown-score" id="structureScore">--</div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-bar-fill" id="structureBar"></div>
+                    </div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">IMPACT</div>
+                    <div class="breakdown-score" id="impactScore">--</div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-bar-fill" id="impactBar"></div>
+                    </div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">COMPLETENESS</div>
+                    <div class="breakdown-score" id="completenessScore">--</div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-bar-fill" id="completenessBar"></div>
+                    </div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">FORMATTING</div>
+                    <div class="breakdown-score" id="formattingScore">--</div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-bar-fill" id="formattingBar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
+        <!-- Professional Summary -->
+        <div class="section-card">
+            <h2 class="section-title">
+                <span class="section-number">01.</span>
+                <span class="section-text">PROFESSIONAL SUMMARY</span>
+            </h2>
+            <p class="summary-text" id="summaryText"></p>
+        </div>
 
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
+        <!-- Strengths & Improvements -->
+        <div class="two-column">
+            <div class="section-card">
+                <h2 class="section-title">
+                    <span class="section-number">02.</span>
+                    <span class="section-text">STRENGTHS</span>
+                </h2>
+                <ul class="list-styled" id="strengthsList"></ul>
+            </div>
 
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                fileInput.files = files;
-                fileInfo.textContent = `Selected: ${files[0].name} (${(files[0].size / 1024).toFixed(2)} KB)`;
-            }
-        });
+            <div class="section-card">
+                <h2 class="section-title">
+                    <span class="section-number">03.</span>
+                    <span class="section-text">IMPROVEMENTS</span>
+                </h2>
+                <div id="improvementsList"></div>
+            </div>
+        </div>
 
-        // Form submission
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        <!-- Recommended Roles -->
+        <div class="section-card">
+            <h2 class="section-title">
+                <span class="section-number">04.</span>
+                <span class="section-text">RECOMMENDED ROLES</span>
+            </h2>
+            <div class="role-tags" id="roleTags"></div>
+        </div>
 
-            // Hide previous results
-            error.classList.remove('show');
-            result.classList.remove('show');
+        <!-- ATS Keywords -->
+        <div class="section-card">
+            <h2 class="section-title">
+                <span class="section-number">05.</span>
+                <span class="section-text">ATS KEYWORDS</span>
+            </h2>
+            <div class="keyword-cloud" id="keywordCloud"></div>
+        </div>
 
-            // Show loading
-            loading.classList.add('show');
-            submitBtn.disabled = true;
+        <!-- Detailed Data Tabs -->
+        <div class="section-card">
+            <h2 class="section-title">
+                <span class="section-number">06.</span>
+                <span class="section-text">DETAILED DATA</span>
+            </h2>
 
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="projects">PROJECTS</button>
+                <button class="tab-btn" data-tab="experience">EXPERIENCE</button>
+                <button class="tab-btn" data-tab="education">EDUCATION</button>
+                <button class="tab-btn" data-tab="skills">SKILLS</button>
+            </div>
 
-            try {
-                const response = await fetch('http://localhost:5000/upload', {
-                    method: 'POST',
-                    body: formData
-                });
+            <div class="tab-content">
+                <div class="tab-pane active" id="tab-projects"></div>
+                <div class="tab-pane" id="tab-experience"></div>
+                <div class="tab-pane" id="tab-education"></div>
+                <div class="tab-pane" id="tab-skills"></div>
+            </div>
+        </div>
 
-                const data = await response.json();
+    </div>
 
-                // Hide loading
-                loading.classList.remove('show');
-                submitBtn.disabled = false;
-
-                if (response.ok && data.success) {
-                    // Show result
-                    extractedText.textContent = data.text;
-                    result.classList.add('show');
-                } else {
-                    // Show error
-                    error.textContent = data.error || 'An error occurred';
-                    error.classList.add('show');
-                }
-
-            } catch (err) {
-                loading.classList.remove('show');
-                submitBtn.disabled = false;
-                error.textContent = 'Failed to upload file. Please try again.';
-                error.classList.add('show');
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 
 </html>

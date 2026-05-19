@@ -1,0 +1,318 @@
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const uploadForm = document.getElementById('uploadForm');
+const fileInfo = document.getElementById('fileInfo');
+const loading = document.getElementById('loading');
+const error = document.getElementById('error');
+const uploadContainer = document.getElementById('uploadContainer');
+const dashboardContainer = document.getElementById('dashboardContainer');
+const uploadNewBtn = document.getElementById('uploadNewBtn');
+const submitBtn = document.getElementById('submitBtn');
+
+let resumeData = null;
+
+// Click to upload
+uploadArea.addEventListener('click', (e) => {
+    if (e.target !== fileInput) {
+        fileInput.click();
+    }
+});
+
+// File selected
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+    }
+});
+
+// Drag and drop
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        fileInfo.textContent = `Selected: ${files[0].name} (${(files[0].size / 1024).toFixed(2)} KB)`;
+    }
+});
+
+// Form submission
+uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    error.classList.remove('show');
+    loading.classList.add('show');
+    submitBtn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        const response = await fetch('http://localhost:5000/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        loading.classList.remove('show');
+        submitBtn.disabled = false;
+
+        if (response.ok && data.success) {
+            resumeData = data.data;
+            showDashboard(resumeData);
+        } else {
+            error.textContent = data.error || 'An error occurred';
+            error.classList.add('show');
+        }
+
+    } catch (err) {
+        loading.classList.remove('show');
+        submitBtn.disabled = false;
+        error.textContent = 'Failed to upload file. Please try again.';
+        error.classList.add('show');
+    }
+});
+
+// Upload new resume
+uploadNewBtn.addEventListener('click', () => {
+    uploadContainer.style.display = 'flex';
+    dashboardContainer.style.display = 'none';
+    fileInput.value = '';
+    fileInfo.textContent = '';
+    resumeData = null;
+});
+
+// Show dashboard with data
+function showDashboard(data) {
+    uploadContainer.style.display = 'none';
+    dashboardContainer.style.display = 'block';
+
+    // Populate identity
+    document.getElementById('candidateName').textContent = data.identity?.name || 'Unknown Candidate';
+
+    // Populate scores
+    const analysis = data.analysis || {};
+    const score = analysis.score || {};
+    const breakdown = score.breakdown || {};
+
+    document.getElementById('overallScore').textContent = score.overall || '--';
+    document.getElementById('scoreExplanation').textContent = score.explanation || '';
+    document.getElementById('overallScoreBar').style.width = `${score.overall || 0}%`;
+
+    document.getElementById('contentScore').textContent = breakdown.content_quality || '--';
+    document.getElementById('contentBar').style.width = `${breakdown.content_quality || 0}%`;
+
+    document.getElementById('structureScore').textContent = breakdown.structure || '--';
+    document.getElementById('structureBar').style.width = `${breakdown.structure || 0}%`;
+
+    document.getElementById('impactScore').textContent = breakdown.impact || '--';
+    document.getElementById('impactBar').style.width = `${breakdown.impact || 0}%`;
+
+    document.getElementById('completenessScore').textContent = breakdown.completeness || '--';
+    document.getElementById('completenessBar').style.width = `${breakdown.completeness || 0}%`;
+
+    document.getElementById('formattingScore').textContent = breakdown.formatting || '--';
+    document.getElementById('formattingBar').style.width = `${breakdown.formatting || 0}%`;
+
+    // Professional summary
+    document.getElementById('summaryText').textContent = analysis.professional_summary || 'No summary available.';
+
+    // Strengths
+    const strengthsList = document.getElementById('strengthsList');
+    strengthsList.innerHTML = '';
+    (analysis.strengths || []).forEach(strength => {
+        const li = document.createElement('li');
+        li.textContent = strength;
+        strengthsList.appendChild(li);
+    });
+
+    // Improvements - Accordion Style
+    const improvementsList = document.getElementById('improvementsList');
+    improvementsList.innerHTML = '';
+    (analysis.improvements || []).forEach((improvement, index) => {
+        const div = document.createElement('div');
+        div.className = 'improvement-item';
+        if (index === 0) div.classList.add('active'); // First one open by default
+
+        div.innerHTML = `
+        <div class="improvement-header">
+            <div class="improvement-header-left">
+                <span class="improvement-section">${improvement.section}</span>
+                <div class="improvement-issue">${improvement.issue}</div>
+            </div>
+            <div class="improvement-header-right">
+                <span class="priority-badge priority-${improvement.priority.toLowerCase()}">${improvement.priority}</span>
+                <div class="accordion-icon">▼</div>
+            </div>
+        </div>
+        <div class="improvement-content">
+            <div class="improvement-suggestion">${improvement.suggestion}</div>
+        </div>`;
+
+        // Add click handler for accordion
+        const header = div.querySelector('.improvement-header');
+        header.addEventListener('click', () => {
+            div.classList.toggle('active');
+        });
+
+        improvementsList.appendChild(div);
+    });
+
+    // Recommended roles
+    const roleTags = document.getElementById('roleTags');
+    roleTags.innerHTML = '';
+    (analysis.recommended_for || []).forEach(role => {
+        const span = document.createElement('span');
+        span.className = 'role-tag';
+        span.textContent = role;
+        roleTags.appendChild(span);
+    });
+
+    // ATS Keywords
+    const keywordCloud = document.getElementById('keywordCloud');
+    keywordCloud.innerHTML = '';
+    (analysis.ats_keywords || []).forEach(keyword => {
+        const span = document.createElement('span');
+        span.className = 'keyword-tag';
+        span.textContent = keyword;
+        keywordCloud.appendChild(span);
+    });
+
+    // Populate tabs
+    populateProjectsTab(data.projects || []);
+    populateExperienceTab(data.experience || []);
+    populateEducationTab(data.education || []);
+    populateSkillsTab(data.skills || {});
+}
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const targetTab = btn.dataset.tab;
+
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        document.getElementById(`tab-${targetTab}`).classList.add('active');
+    });
+});
+
+function populateProjectsTab(projects) {
+    const container = document.getElementById('tab-projects');
+    container.innerHTML = '';
+
+    projects.forEach(project => {
+        const div = document.createElement('div');
+        div.className = 'data-item';
+
+        const techTags = project.tech_stack.map(tech =>
+            `<span class="data-tag">${tech}</span>`
+        ).join('');
+
+        const details = project.details.map(detail =>
+            `<li>${detail}</li>`
+        ).join('');
+
+        div.innerHTML = `
+            <div class="data-item-header">
+                <div class="data-title">${project.title}</div>
+                <div class="data-meta">${project.type} • ${project.year}</div>
+            </div>
+            <div class="data-tags">${techTags}</div>
+            <ul class="data-details">${details}</ul>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+function populateExperienceTab(experiences) {
+    const container = document.getElementById('tab-experience');
+    container.innerHTML = '';
+
+    experiences.forEach(exp => {
+        const div = document.createElement('div');
+        div.className = 'data-item';
+
+        const responsibilities = exp.responsibilities.map(resp =>
+            `<li>${resp}</li>`
+        ).join('');
+
+        div.innerHTML = `
+            <div class="data-item-header">
+                <div class="data-title">${exp.title}</div>
+                <div class="data-meta">${exp.company} • ${exp.duration} • ${exp.type}</div>
+            </div>
+            <ul class="data-details">${responsibilities}</ul>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+function populateEducationTab(education) {
+    const container = document.getElementById('tab-education');
+    container.innerHTML = '';
+
+    education.forEach(edu => {
+        const div = document.createElement('div');
+        div.className = 'data-item';
+
+        const coursework = edu.relevant_coursework?.map(course =>
+            `<span class="data-tag">${course}</span>`
+        ).join('') || '';
+
+        div.innerHTML = `
+            <div class="data-item-header">
+                <div class="data-title">${edu.degree} in ${edu.major}</div>
+                <div class="data-meta">${edu.institution} • ${edu.graduation_year} • GPA: ${edu.gpa}</div>
+            </div>
+            ${coursework ? `<div class="data-tags">${coursework}</div>` : ''}
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+function populateSkillsTab(skills) {
+    const container = document.getElementById('tab-skills');
+    container.innerHTML = '';
+
+    const categories = [
+        { title: 'Languages', data: skills.languages || [] },
+        { title: 'Frameworks', data: skills.frameworks || [] },
+        { title: 'Tools', data: skills.tools || [] },
+        { title: 'Domains', data: skills.domains || [] }
+    ];
+
+    categories.forEach(cat => {
+        if (cat.data.length > 0) {
+            const div = document.createElement('div');
+            div.className = 'data-item';
+
+            const tags = cat.data.map(item =>
+                `<span class="data-tag">${item}</span>`
+            ).join('');
+
+            div.innerHTML = `
+                <div class="data-title">${cat.title}</div>
+                <div class="data-tags">${tags}</div>
+            `;
+
+            container.appendChild(div);
+        }
+    });
+}
