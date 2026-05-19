@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>📄 Resume Parser</h1>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="upload-area" id="uploadArea">
+                <label for="fileInput" class="upload-label">
+                    📁 Click to select or drag & drop PDF file here
+                </label>
+                <input type="file" id="fileInput" name="file" accept=".pdf" required>
+                <div class="file-info" id="fileInfo"></div>
+            </div>
+
+            <button type="submit" id="submitBtn">Upload & Extract Text</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing your resume...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result" id="result">
+            <h2>Extracted Text:</h2>
+            <div class="extracted-text" id="extractedText"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInfo = document.getElementById('fileInfo');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const result = document.getElementById('result');
+        const extractedText = document.getElementById('extractedText');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // File selected
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            }
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInfo.textContent = `Selected: ${files[0].name} (${(files[0].size / 1024).toFixed(2)} KB)`;
+            }
+        });
+
+        // Form submission
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Hide previous results
+            error.classList.remove('show');
+            result.classList.remove('show');
+
+            // Show loading
+            loading.classList.add('show');
+            submitBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('http://localhost:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // Hide loading
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+
+                if (response.ok && data.success) {
+                    // Show result
+                    extractedText.textContent = data.text;
+                    result.classList.add('show');
+                } else {
+                    // Show error
+                    error.textContent = data.error || 'An error occurred';
+                    error.classList.add('show');
+                }
+
+            } catch (err) {
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+                error.textContent = 'Failed to upload file. Please try again.';
+                error.classList.add('show');
+            }
+        });
+    </script>
+</body>
+
+</html>
