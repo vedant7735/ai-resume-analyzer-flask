@@ -503,7 +503,7 @@ input[type="file"] {
     font-family: var(--font-mono);
     font-size: 0.7rem;
     padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    border-radius: 6px;
     font-weight: 500;
     white-space: nowrap;
 }
@@ -555,14 +555,14 @@ input[type="file"] {
     line-height: 1.6;
     padding: var(--spacing-sm);
     background: var(--surface-white);
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 .priority-badge {
     font-family: var(--font-mono);
     font-size: 0.7rem;
     padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    border-radius: 6px;
     font-weight: 500;
 }
 
@@ -627,7 +627,7 @@ input[type="file"] {
 .keyword-tag {
     background: var(--bg-canvas);
     padding: 0.5rem 0.75rem;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 0.85rem;
     color: var(--text-secondary);
     font-family: var(--font-mono);
@@ -745,4 +745,317 @@ input[type="file"] {
     .tabs {
         overflow-x: auto;
     }
+}
+
+/* ===== HEADER ACTIONS ===== */
+.header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.btn-download {
+    background: var(--accent-primary);
+    color: var(--surface-white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-download:hover {
+    background: var(--accent-primary-dark);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-download:disabled {
+    background: var(--border-color);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-download .btn-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ===== LATEX EDITOR MODAL ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(43, 43, 43, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--spacing-lg);
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.show {
+    display: flex;
+    animation: overlayFadeIn 0.3s ease;
+}
+
+@keyframes overlayFadeIn {
+    from {
+        background: rgba(43, 43, 43, 0);
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    to {
+        background: rgba(43, 43, 43, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+}
+
+.modal-container {
+    background: var(--surface-white);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 1000px;
+    height: 80vh;
+    max-height: 800px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    animation: modalSlideIn 0.3s ease;
+    overflow: hidden; /* Force child elements (header/footer) to respect rounded corners */
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: var(--spacing-lg);
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.8rem;
+    line-height: 1;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: var(--bg-canvas);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Editor Toolbar */
+.editor-toolbar {
+    padding: var(--spacing-md);
+    background: var(--bg-canvas);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.toolbar-btn {
+    background: var(--surface-white);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px; /* Consistent corner radius */
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.toolbar-btn:hover {
+    background: var(--accent-primary);
+    color: var(--surface-white);
+    border-color: var(--accent-primary);
+}
+
+.toolbar-status {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.status-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+}
+
+.status-text {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent-primary);
+    font-weight: 500;
+}
+
+/* LaTeX Editor (IDE-style Theme) */
+.latex-editor {
+    flex: 1;
+    width: 100%;
+    padding: var(--spacing-lg);
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: none;
+    background: #1e2219; /* Premium dark-olive canvas matching color palette */
+    color: #edf2e8; /* High-contrast ivory text */
+    outline: none;
+    transition: background 0.3s ease;
+}
+
+.latex-editor:focus {
+    background: #242a1e;
+}
+
+/* Custom Scrollbar for Editor */
+.latex-editor::-webkit-scrollbar {
+    width: 8px;
+}
+
+.latex-editor::-webkit-scrollbar-track {
+    background: #1e2219;
+}
+
+.latex-editor::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 4px;
+}
+
+.latex-editor::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-primary-dark);
+}
+
+/* Editor Footer */
+.editor-footer {
+    padding: var(--spacing-md);
+    background: var(--bg-canvas);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.editor-info {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+
+.info-label {
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.info-separator {
+    color: var(--border-color);
+}
+
+.editor-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-download,
+    .btn-secondary {
+        width: 100%;
+    }
+
+    .modal-container {
+        height: 95vh;
+        max-height: 95vh;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .editor-footer {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        align-items: flex-start;
+    }
+}
+
+/* ===== PDF DOWNLOAD ACTIONS ===== */
+#downloadPdfBtn,
+#dashboardPdfBtn {
+    background: var(--accent-secondary) !important;
+    color: var(--surface-white) !important;
+    border-color: var(--accent-secondary) !important;
+}
+
+#downloadPdfBtn:hover,
+#dashboardPdfBtn:hover {
+    background: #a3874c !important; /* Premium darker ochre for hover state */
+    border-color: #a3874c !important;
+    color: var(--surface-white) !important;
+    transform: translateY(-1px);
 }

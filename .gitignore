@@ -1,6 +1,9 @@
 .env
 .gitignore
 __pycache__/
-resume_screenshots/
+uploads/
 pt_to_json.py
 pdf_to_text.py
+.venv
+cache/
+generated/

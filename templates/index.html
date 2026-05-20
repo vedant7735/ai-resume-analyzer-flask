@@ -60,9 +60,17 @@
                 </h1>
                 <p class="candidate-name" id="candidateName">REESUME FOR</p>
             </div>
-            <button class="btn-secondary" id="uploadNewBtn">
-                <span class="btn-text">← UPLOAD NEW</span>
-            </button>
+            <div class="header-actions">
+                <button class="btn-download" id="downloadLatexBtn">
+                    <span class="btn-text">↓ DOWNLOAD .TEX</span>
+                </button>
+                <button class="btn-download" id="dashboardPdfBtn" style="display: none;">
+                    <span class="btn-text">↓ DOWNLOAD PDF</span>
+                </button>
+                <button class="btn-secondary" id="uploadNewBtn">
+                    <span class="btn-text">← UPLOAD NEW</span>
+                </button>
+            </div>
         </div>
 
         <!-- Score Overview -->
@@ -182,10 +190,46 @@
                 <div class="tab-pane" id="tab-skills"></div>
             </div>
         </div>
+        <div class="modal-overlay" id="latexModal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h2 class="modal-title">
+                        <span class="title-heavy">EDIT</span>
+                        <span class="title-italic">Resume</span>
+                    </h2>
+                    <button class="modal-close" id="closeModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="editor-toolbar">
+                        <button class="toolbar-btn" id="resetBtn" title="Reset to original">
+                            ↺ RESET
+                        </button>
+                        <button class="toolbar-btn" id="downloadEditedBtn" title="Download edited version">
+                            ↓ DOWNLOAD EDITED
+                        </button>
+                        <span class="toolbar-status">
+                            <span class="status-label">STATUS:</span>
+                            <span class="status-text" id="editorStatus">Ready</span>
+                        </span>
+                    </div>
+                    <textarea class="latex-editor" id="latexEditor" spellcheck="false"></textarea>
+                    <div class="editor-footer">
+                        <div class="editor-info">
+                            <span class="info-label">LINES:</span>
+                            <span class="info-value" id="lineCount">0</span>
+                            <span class="info-separator">|</span>
+                            <span class="info-label">CHARS:</span>
+                            <span class="info-value" id="charCount">0</span>
+                        </div>
+                        <div class="editor-hint">
+                            Click "DOWNLOAD EDITED" to save your changes as a new .tex file
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    </div>
-
-    <script src="script.js"></script>
+        <script src="script.js"></script>
 </body>
 
 </html>
