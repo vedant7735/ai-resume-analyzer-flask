@@ -331,10 +331,15 @@ const downloadEditedBtn = document.getElementById('downloadEditedBtn');
 const editorStatus = document.getElementById('editorStatus');
 const lineCount = document.getElementById('lineCount');
 const charCount = document.getElementById('charCount');
+const editorWorkspace = document.getElementById('editorWorkspace');
+const showSplitViewBtn = document.getElementById('showSplitViewBtn');
+const showLatexOnlyBtn = document.getElementById('showLatexOnlyBtn');
+const showPreviewOnlyBtn = document.getElementById('showPreviewOnlyBtn');
 
 let originalLatexCode = '';
 let currentFileId = null;
 let currentDownloadBasename = 'candidate_resume_ai_pack';
+let editorViewMode = 'split';
 
 // Download LaTeX (generates code and opens editor)
 downloadLatexBtn.addEventListener('click', async () => {
@@ -401,6 +406,7 @@ downloadLatexBtn.addEventListener('click', async () => {
 
         // Open modal
         latexModal.classList.add('show');
+        setEditorViewMode(editorViewMode);
 
         editorStatus.textContent = 'Ready to edit';
 
@@ -501,6 +507,74 @@ function hidePdfDownloadButton() {
     if (!pdfBtn) return;
 
     pdfBtn.style.display = 'none';
+}
+
+
+// -----------------------------
+// EDITOR VIEW MODE
+// -----------------------------
+
+function setEditorViewMode(mode) {
+
+    editorViewMode = ['latex', 'preview'].includes(mode) ? mode : 'split';
+
+    if (!editorWorkspace) {
+        return;
+    }
+
+    editorWorkspace.classList.toggle(
+        'latex-only',
+        editorViewMode === 'latex'
+    );
+
+    editorWorkspace.classList.toggle(
+        'preview-only',
+        editorViewMode === 'preview'
+    );
+
+    editorWorkspace.classList.toggle(
+        'split-view',
+        editorViewMode === 'split'
+    );
+
+    if (showSplitViewBtn) {
+        const isSplit = editorViewMode === 'split';
+        showSplitViewBtn.classList.toggle('active', isSplit);
+        showSplitViewBtn.setAttribute('aria-pressed', String(isSplit));
+    }
+
+    if (showLatexOnlyBtn) {
+        const isLatexOnly = editorViewMode === 'latex';
+        showLatexOnlyBtn.classList.toggle('active', isLatexOnly);
+        showLatexOnlyBtn.setAttribute('aria-pressed', String(isLatexOnly));
+    }
+
+    if (showPreviewOnlyBtn) {
+        const isPreviewOnly = editorViewMode === 'preview';
+        showPreviewOnlyBtn.classList.toggle('active', isPreviewOnly);
+        showPreviewOnlyBtn.setAttribute('aria-pressed', String(isPreviewOnly));
+    }
+}
+
+
+if (showSplitViewBtn) {
+    showSplitViewBtn.addEventListener('click', () => {
+        setEditorViewMode('split');
+    });
+}
+
+
+if (showLatexOnlyBtn) {
+    showLatexOnlyBtn.addEventListener('click', () => {
+        setEditorViewMode('latex');
+    });
+}
+
+
+if (showPreviewOnlyBtn) {
+    showPreviewOnlyBtn.addEventListener('click', () => {
+        setEditorViewMode('preview');
+    });
 }
 
 
@@ -621,6 +695,9 @@ function updateEditorStats() {
 
     charCount.textContent = chars;
 }
+
+
+setEditorViewMode(editorViewMode);
 
 
 // -----------------------------

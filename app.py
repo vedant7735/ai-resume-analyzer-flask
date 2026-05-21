@@ -3,9 +3,13 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
 
-from services.pdf_extractor import extract_resume_object
-from services.llm_analyzer import analyze_resume_object
-from services.llm_enhancer import enhance_resume_object
+from services.model_service.multimodal_extractor import (
+    SUPPORTED_EXTENSIONS,
+    extract_resume,
+    get_resume_input_type
+)
+from services.model_service.llm_analyzer import analyze_resume_object
+from services.model_service.llm_enhancer import enhance_resume_object
 from services.renderer import render_to_latex, compile_latex_to_pdf
 from services.cache_service import (
     get_file_hash, 
@@ -23,7 +27,7 @@ CORS(app)
 UPLOAD_FOLDER = 'uploads'
 CACHE_FOLDER = 'cache'
 GENERATED_FOLDER = 'generated'
-ALLOWED_EXTENSIONS = {'pdf'}
+ALLOWED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -73,19 +77,30 @@ def upload_file():
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
         
+        input_type = get_resume_input_type(filename)
         file_hash = get_file_hash(filepath)
         cached_v2 = get_cached_analysis(file_hash, CACHE_FOLDER)
         
         if cached_v2:
             os.remove(filepath)
-            return jsonify({'success': True, 'data': cached_v2, 'cached': True}), 200
+            return jsonify({
+                'success': True,
+                'data': cached_v2,
+                'cached': True,
+                'input_type': input_type
+            }), 200
         
-        resume_v1 = extract_resume_object(filepath)
+        resume_v1 = extract_resume(filepath, filename)
         resume_v2 = analyze_resume_object(resume_v1)
         save_to_cache(file_hash, resume_v2, CACHE_FOLDER)
         os.remove(filepath)
         
-        return jsonify({'success': True, 'data': resume_v2, 'cached': False}), 200
+        return jsonify({
+            'success': True,
+            'data': resume_v2,
+            'cached': False,
+            'input_type': input_type
+        }), 200
         
     except Exception as e:
         if filepath and os.path.exists(filepath):
