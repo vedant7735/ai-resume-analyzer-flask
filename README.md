@@ -1,289 +1,453 @@
-# README
+# AI Resume Analyzer & LaTeX Resume Enhancement Platform
 
-## PROJECT OVERVIEW
+An AI-powered resume analysis and enhancement platform built using Flask, Groq-hosted LLMs, and a structured semantic processing pipeline.
 
-This is an AI-powered resume analyzer that extracts text from PDF resumes, cleans the data, and uses a Language Model to provide comprehensive analysis including professional summaries, improvement suggestions, and scoring.
-
----
-
-## FEATURES
-
-- PDF text extraction using PyPDF2
-- Text cleaning and normalization
-- LLM-powered resume analysis
-- Professional dashboard with scores and insights
-- Improvement suggestions with priority levels
-- ATS keyword extraction
-- Recommended job roles
-- Detailed data tabs for projects, experience, education, and skills
+The platform extracts resume content from PDFs, converts resumes into structured JSON, performs contextual analysis and enhancement, and generates ATS-friendly LaTeX and PDF outputs.
 
 ---
 
-## TECH STACK
+# PROJECT OVERVIEW
 
-### Backend:
-- Python 3.x
-- Flask (web framework)
-- Flask-CORS (cross-origin support)
-- PyPDF2 (PDF text extraction)
-- OpenAI API (LLM analysis)
-- python-dotenv (environment variables)
+This project is designed as a modular resume intelligence pipeline rather than a simple text analyzer.
 
-### Frontend:
-- HTML5
-- CSS3 (custom design system)
-- Vanilla JavaScript (no frameworks)
+The system performs:
 
----
+- Layout-aware PDF parsing
+- Structured semantic extraction
+- Resume validation
+- AI-powered contextual analysis
+- Targeted resume enhancement
+- LaTeX resume rendering
+- PDF compilation
+- Editable `.tex` generation
 
-## INSTALLATION
+The architecture separates:
+- semantic processing
+- validation
+- enhancement
+- rendering
 
-1. Clone the repository
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   ```
-3. Activate virtual environment:
-   - Windows:
-     ```bash
-     venv\Scripts\activate
-     ```
-   - Mac/Linux:
-     ```bash
-     source venv/bin/activate
-     ```
-4. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-5. Create a `.env` file in the root directory
-6. Add your OpenAI API key to `.env`:
-   ```env
-   OPENAI_API_KEY=your_api_key_here
-   ```
+into independent services for scalability and maintainability.
 
 ---
 
-## DEPENDENCIES (`requirements.txt`)
+# CORE FEATURES
 
-```txt
-Flask==2.3.0
-flask-cors==4.0.0
-PyPDF2==3.0.0
-openai==1.0.0
-python-dotenv==1.0.0
-werkzeug==2.3.0
-```
+## Resume Extraction
+- Layout-aware PDF extraction using PyMuPDF
+- OCR fallback support for scanned resumes
+- Section detection using font/layout heuristics
+- Structured identity extraction
+- Experience/project parsing
 
----
+## Structured Resume Schema
+- Canonical JSON resume format
+- JSON schema validation
+- Automatic schema repair
+- Safe LLM JSON parsing utilities
 
-## PROJECT STRUCTURE
-
-```txt
-project_root/
-├── app.py                  # Flask application
-├── cleaner.py              # Text cleaning functions
-├── .env                    # Environment variables (not in git)
-├── requirements.txt        # Python dependencies
-├── uploads/                # Temporary upload folder (auto-created)
-└── templates/
-    ├── index.html          # Main HTML file
-    ├── styles.css          # Stylesheet
-    └── script.js           # Frontend JavaScript
-```
-
-## SCREENSHOTS
-
-### Landing Page
-
-![Landing Page](images/landing.png)
-
-### Analysis Dashboard
-
-![Analysis Dashboard](images/score.png)
-
-### Summary
-
-![Analyzed Data](images/summary.png)
-
-### Recommendations
-
-![Analyzed Data](images/recommendation.png)
-
-
----
-
-## HOW TO RUN
-
-1. Make sure virtual environment is activated
-2. Run:
-   ```bash
-   python app.py
-   ```
-3. Open browser and go to:
-   ```txt
-   http://localhost:5000
-   ```
-4. Upload a PDF resume
-5. Wait for analysis
-6. View comprehensive dashboard
-
----
-
-## USAGE
-
-1. Drag and drop or click to select a PDF resume
-2. Click **"ANALYZE RESUME"** button
-3. Wait for processing (usually 5–15 seconds)
-4. Dashboard appears with:
-   - Overall score out of 100
-   - Score breakdown (content, structure, impact, completeness, formatting)
-   - Professional summary
-   - Strengths list
-   - Improvement suggestions (accordion style)
-   - Recommended job roles
-   - ATS keywords
-   - Detailed data tabs
-5. Click **"UPLOAD NEW"** to analyze another resume
-
----
-
-## DESIGN SYSTEM
-
-### Color Palette:
-- Background: Warm cream/off-white (`#F5F1E8`)
-- Text: Soft charcoal (`#2B2B2B`)
-- Primary Accent: Muted olive (`#6B7A46`)
-- Secondary Accent: Warm ochre (`#B59A52`)
-
-### Typography:
-- Headlines: Inter (heavy sans-serif) + Playfair Display (italic serif)
-- Body: Inter (geometric sans-serif)
-- UI Labels: IBM Plex Mono (monospaced)
-
----
-
-## CONFIGURATION
-
-You can adjust the LLM model in `app.py`:
-- Default: `gpt-4o-mini` (faster, cheaper)
-- Premium: `gpt-4o` (better quality)
-
----
-
-## FEATURES BREAKDOWN
-
-### 1. Text Extraction (`cleaner.py`)
-- Fixes encoding issues
-- Removes hyphenation artifacts
-- Standardizes whitespace
-- Normalizes bullet points
-- Detects section headers
-
-### 2. LLM Analysis (`app.py`)
-- Structured JSON output
-- Score calculation with breakdown
+## AI Resume Analysis
 - Professional summary generation
-- Strength identification
-- Improvement suggestions with priority
+- Resume scoring system
 - ATS keyword extraction
+- Strength identification
+- Improvement recommendations
 - Role recommendations
 
-### 3. Dashboard (`index.html + styles.css + script.js`)
-- Upload interface with drag-and-drop
-- Loading states
-- Error handling
-- Score visualization with progress bars
-- Accordion for improvements
-- Tab navigation for detailed data
-- Responsive design
+## AI Resume Enhancement
+- Targeted semantic enhancement
+- Selective bullet rewriting
+- Quantified achievement optimization
+- Resume content patching system
+
+## Rendering Engine
+- JSON → LaTeX conversion
+- ATS-friendly resume templates
+- PDF compilation using `pdflatex`
+- Editable LaTeX export
+- Downloadable `.tex` and `.pdf` outputs
+
+## Frontend Dashboard
+- Drag-and-drop upload UI
+- Interactive analytics dashboard
+- Improvement accordion system
+- Detailed data tabs
+- Resume score visualization
+- Editable LaTeX modal editor
+
+## Performance Optimization
+- Multi-layer caching system
+- Cached analysis pipeline
+- Cached enhancement pipeline
+- Cached render generation
 
 ---
 
-## API ENDPOINTS
+# SYSTEM PIPELINE
 
-### `POST /upload`
-- Accepts: `multipart/form-data` with `file` field
-- Returns: JSON with analysis data
-- Max file size: 16MB
-
-### `GET /`
-- Returns: Main HTML page
-
-### `GET /styles.css`
-- Returns: Stylesheet
-
----
-
-## LIMITATIONS
-
-- Only works with text-based PDFs (not scanned images)
-- Requires OpenAI API key (costs money)
-- File size limit: 16MB
-- PDF format only
-- Requires internet connection for LLM
-
----
-
-## FUTURE ENHANCEMENTS
-
-- Support for multiple file formats (DOCX, TXT)
-- OCR for scanned PDFs
-- Batch processing
-- Export analysis as PDF report
-- Compare multiple resumes
-- Job description matching
-- Resume template suggestions
-- Version history tracking
+```text
+PDF Resume
+    ↓
+Layout-Aware Extraction
+    ↓
+Structured Resume JSON (v1)
+    ↓
+LLM Analysis + Validation
+    ↓
+Enhanced Resume Object (v2)
+    ↓
+Semantic Enhancement Engine
+    ↓
+Enhanced Resume Object (v3)
+    ↓
+LaTeX Rendering Engine
+    ↓
+PDF Compilation
+    ↓
+Downloadable .tex and .pdf
+```
 
 ---
 
-## TROUBLESHOOTING
+# TECH STACK
 
-### Issue: File upload fails
-**Solution:** Check file is PDF and under 16MB
+## Backend
+- Python 3.x
+- Flask
+- Flask-CORS
 
-### Issue: LLM analysis fails
-**Solution:** Verify OpenAI API key in `.env` file and check API quota
+## AI & LLM Processing
+- Groq API
+- `openai/gpt-oss-120b`
+- Structured JSON prompting
 
-### Issue: Blank dashboard
-**Solution:** Check browser console for JavaScript errors
+## PDF & OCR Processing
+- PyMuPDF (`fitz`)
+- pytesseract
+- pdf2image
 
-### Issue: CORS errors
-**Solution:** Make sure Flask-CORS is installed and `CORS(app)` is in `app.py`
+## Rendering
+- LaTeX
+- pdflatex
 
-### Issue: Module not found
-**Solution:** Activate virtual environment and run:
+## Frontend
+- HTML5
+- CSS3
+- Vanilla JavaScript
+
+## Validation & Utilities
+- jsonschema
+- dotenv
+
+---
+
+# PROJECT STRUCTURE
+
+```text
+project_root/
+│
+├── app.py
+├── requirements.txt
+├── README.md
+│
+├── services/
+│   ├── pdf_extractor.py
+│   ├── llm_analyzer.py
+│   ├── llm_enhancer.py
+│   ├── renderer.py
+│   ├── validator.py
+│   ├── cache_service.py
+│   ├── json_utils.py
+│   └── LLM_Models.py
+│
+├── templates/
+│   ├── index.html
+│   ├── styles.css
+│   └── script.js
+│
+├── images/
+│   ├── landing.png
+│   ├── score.png
+│   ├── summary.png
+│   └── recommendation.png
+│
+└── generated/
+```
+
+---
+
+# INSTALLATION
+
+## Clone Repository
+
+```bash
+git clone https://github.com/vedant7735/ai-resume-analyzer-flask.git
+cd ai-resume-analyzer-flask
+```
+
+---
+
+## Create Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+### Linux / macOS
+
+```bash
+source venv/bin/activate
+```
+
+---
+
+## Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## SECURITY NOTES
+## Configure Environment Variables
 
-- Uploaded files are deleted immediately after processing
-- No data is stored permanently
-- API keys stored in `.env` (not committed to git)
-- Add `.env` to `.gitignore`
-- CORS enabled (disable in production or restrict domains)
+Create a `.env` file:
 
----
-
-## LICENSE
-
-This project is for educational/personal use.
+```env
+GROQ_API_KEY=your_api_key_here
+```
 
 ---
 
-## CREDITS
+# HOW TO RUN
 
-- PyPDF2 for PDF extraction
-- OpenAI for LLM capabilities
-- Google Fonts for typography (Inter, Playfair Display, IBM Plex Mono)
+```bash
+python app.py
+```
+
+Open in browser:
+
+```text
+http://localhost:5000
+```
 
 ---
 
-## CONTACT
+# CURRENT MODEL CONFIGURATION
 
-For issues or questions, please open an issue in the repository.
+Current LLM configuration:
+
+```python
+MODEL_NAME_ANALYZER = "openai/gpt-oss-120b"
+MODEL_NAME_ENHANCER = "openai/gpt-oss-120b"
+```
+
+Models can be modified inside:
+
+```text
+services/LLM_Models.py
+```
+
+---
+
+# FEATURES BREAKDOWN
+
+## 1. Layout-Aware Resume Extraction
+
+The extraction layer:
+- reads PDF layout blocks
+- detects sections using typography heuristics
+- extracts semantic structure
+- builds canonical resume JSON
+
+Supports:
+- text-based PDFs
+- scanned resumes via OCR fallback
+
+---
+
+## 2. Resume Validation Layer
+
+The validator:
+- enforces schema consistency
+- repairs missing fields
+- validates LLM outputs
+- prevents malformed resume objects
+
+---
+
+## 3. LLM Analysis Engine
+
+The analyzer:
+- generates structured JSON
+- produces factual summaries
+- computes score breakdowns
+- extracts ATS keywords
+- identifies weaknesses
+- recommends technical roles
+
+---
+
+## 4. Enhancement Engine
+
+The enhancement layer:
+- applies targeted semantic patches
+- rewrites weak bullets
+- improves action verbs
+- optimizes quantified achievements
+- avoids rewriting unchanged sections
+
+---
+
+## 5. Rendering Engine
+
+The rendering system:
+- converts structured JSON into LaTeX
+- escapes unsafe LaTeX characters
+- compiles PDFs automatically
+- supports editable `.tex` export
+
+---
+
+## 6. Multi-Level Cache System
+
+Caching layers:
+- analyzed resume cache
+- enhanced resume cache
+- rendered file cache
+
+This significantly reduces repeated LLM and rendering costs.
+
+---
+
+# SCREENSHOTS
+
+## Landing Page
+
+![Landing Page](images/v2/landing.png)
+
+---
+
+## Analysis Dashboard
+
+![Dashboard](images/v2/score.png)
+
+---
+
+## LaTeX Editor
+
+![Latex Editor](images/v2/texeditor.png)
+
+---
+
+## Professional Summary
+
+![Summary](images/v2/summary.png)
+
+---
+
+## Recommendations
+
+![Recommendations](images/v2/recommendation.png)
+
+---
+
+# API ENDPOINTS
+
+## `POST /upload`
+
+Accepts:
+- PDF resume upload
+
+Returns:
+- analyzed resume JSON
+
+---
+
+## `POST /enhance`
+
+Accepts:
+- analyzed resume object
+
+Returns:
+- enhanced LaTeX + downloadable files
+
+---
+
+## `GET /download-tex/<file_id>`
+
+Downloads generated `.tex` file.
+
+---
+
+## `GET /download-pdf/<file_id>`
+
+Downloads compiled PDF resume.
+
+---
+
+# CURRENT LIMITATIONS
+
+- Limited DOCX support
+- OCR quality depends on scan clarity
+- Requires installed `pdflatex`
+- Requires internet access for LLM inference
+- PDF formatting may vary across resume styles
+
+---
+
+# FUTURE IMPROVEMENTS
+
+- Resume ↔ Job Description matching
+- Role alignment analytics
+- Multiple LaTeX templates
+- Resume version tracking
+- Batch resume processing
+- Skill gap analysis
+- Seniority estimation
+- Deployment support
+
+---
+
+# SECURITY NOTES
+
+- Uploaded files are processed temporarily
+- API keys stored in `.env`
+- Resume data is not permanently stored
+- Generated files can be cached locally
+
+---
+
+# LICENSE
+
+This project is intended for:
+- educational purposes
+- experimentation
+- internship development
+- portfolio projects
+
+---
+
+# AUTHOR
+
+Vedant Vyas
+
+GitHub:
+https://github.com/vedant7735
+
+---
+
+# ACKNOWLEDGEMENTS
+
+- Groq
+- PyMuPDF
+- pytesseract
+- Flask
+- jsonschema
+- LaTeX
