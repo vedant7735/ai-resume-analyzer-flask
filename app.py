@@ -3,182 +3,241 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
 
-# Import services
-from services.pdf_service import extract_text_from_pdf
-from services.cleaner_service import clean_text
-from services.llm_service import analyze_resume
-from services.latex_service import generate_improved_latex, save_latex_and_pdf
-from services.cache_service import get_file_hash, get_cached_analysis, save_to_cache
+from services.pdf_extractor import extract_resume_object
+from services.llm_analyzer import analyze_resume_object
+from services.llm_enhancer import enhance_resume_object
+from services.renderer import render_to_latex, compile_latex_to_pdf
+from services.cache_service import (
+    get_file_hash, 
+    get_cached_analysis, 
+    save_to_cache,
+    get_cached_enhancement,
+    save_enhancement_to_cache,
+    get_cached_render,
+    save_render_to_cache
+)
 
 app = Flask(__name__)
 CORS(app)
 
-# Configuration
 UPLOAD_FOLDER = 'uploads'
 CACHE_FOLDER = 'cache'
 GENERATED_FOLDER = 'generated'
 ALLOWED_EXTENSIONS = {'pdf'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# Create folders
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(CACHE_FOLDER, exist_ok=True)
-os.makedirs(GENERATED_FOLDER, exist_ok=True)
-
+for folder in [UPLOAD_FOLDER, CACHE_FOLDER, GENERATED_FOLDER]:
+    os.makedirs(folder, exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def build_download_basename(resume):
+    identity = (resume or {}).get('identity', {})
+    candidate_name = (identity.get('name') or 'candidate').strip()
+    safe_name = secure_filename(candidate_name.replace(' ', '_')).strip('_')
 
+    if not safe_name:
+        safe_name = 'candidate'
+
+    return f"{safe_name}_resume_ai_pack"
+
+# Frontend routes
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/styles.css')
 def style():
     return send_from_directory('templates', 'styles.css')
 
-
 @app.route('/script.js')
 def script():
     return send_from_directory('templates', 'script.js')
 
-
+# Pipeline routes
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    """Handle PDF upload and analysis"""
-    
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
     
     file = request.files['file']
-    
-    if file.filename == '' or not allowed_file(file.filename):
+    if not file.filename or not allowed_file(file.filename):
         return jsonify({'error': 'Invalid file'}), 400
     
     filepath = None
-    
     try:
-        # Save file
         filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
         
-        # Check cache
         file_hash = get_file_hash(filepath)
-        cached = get_cached_analysis(file_hash, CACHE_FOLDER)
+        cached_v2 = get_cached_analysis(file_hash, CACHE_FOLDER)
         
-        if cached:
+        if cached_v2:
             os.remove(filepath)
-            return jsonify({
-                'success': True,
-                'filename': filename,
-                'data': cached,
-                'cached': True
-            }), 200
+            return jsonify({'success': True, 'data': cached_v2, 'cached': True}), 200
         
-        # Extract and clean
-        raw_text = extract_text_from_pdf(filepath)
-        cleaned_text = clean_text(raw_text)
-        
-        # Analyze with LLM
-        result = analyze_resume(cleaned_text)
-        
-        # Cache result
-        save_to_cache(file_hash, result, CACHE_FOLDER)
-        
-        # Cleanup
+        resume_v1 = extract_resume_object(filepath)
+        resume_v2 = analyze_resume_object(resume_v1)
+        save_to_cache(file_hash, resume_v2, CACHE_FOLDER)
         os.remove(filepath)
         
-        return jsonify({
-            'success': True,
-            'filename': filename,
-            'data': result,
-            'cached': False
-        }), 200
+        return jsonify({'success': True, 'data': resume_v2, 'cached': False}), 200
         
     except Exception as e:
         if filepath and os.path.exists(filepath):
             os.remove(filepath)
         return jsonify({'error': str(e)}), 500
 
+@app.route('/enhance', methods=['POST'])
+def enhance():
 
-@app.route('/generate-latex', methods=['POST'])
-def generate_latex():
-    """Generate improved LaTeX resume and compile PDF if possible"""
-    
     try:
-        data = request.json
-        resume_data = data.get('resume_data')
-        
-        if not resume_data:
-            return jsonify({'error': 'No data provided'}), 400
-        
-        # Generate LaTeX
-        latex_code = generate_improved_latex(resume_data, "")
-        
-        # Save LaTeX and compile to PDF
-        file_info = save_latex_and_pdf(latex_code, GENERATED_FOLDER)
-        
+
+        resume_v2 = request.json.get('resume')
+
+        if not resume_v2:
+            return jsonify({
+                'error': 'No resume data'
+            }), 400
+
+        # -----------------------------
+        # Enhancement Cache
+        # -----------------------------
+
+        cached_v3 = get_cached_enhancement(
+            resume_v2,
+            CACHE_FOLDER
+        )
+
+        resume_v3 = (
+            cached_v3
+            if cached_v3
+            else enhance_resume_object(resume_v2)
+        )
+
+        if not cached_v3:
+            save_enhancement_to_cache(
+                resume_v2,
+                resume_v3,
+                CACHE_FOLDER
+            )
+
+        # -----------------------------
+        # Render Cache
+        # -----------------------------
+
+        cached_render = get_cached_render(
+            resume_v3,
+            CACHE_FOLDER
+        )
+
+        if cached_render:
+
+            pdf_exists = (
+                cached_render['pdf_path'] is not None
+                and
+                os.path.exists(cached_render['pdf_path'])
+            )
+
+            if pdf_exists:
+                download_basename = build_download_basename(resume_v3)
+                return jsonify({
+                    'success': True,
+                    'file_id': cached_render['file_id'],
+                    'tex_filename': f"{download_basename}.tex",
+                    'pdf_filename': f"{download_basename}.pdf",
+                    'download_basename': download_basename,
+                    'pdf_available': True,
+                    'cached': True
+                }), 200
+
+        # -----------------------------
+        # Render Fresh Files
+        # -----------------------------
+
+        latex_code = render_to_latex(resume_v3)
+
+        tex_path, pdf_path, file_id = compile_latex_to_pdf(
+            latex_code,
+            GENERATED_FOLDER
+        )
+
+        print("TEX PATH:", tex_path)
+        print("PDF PATH:", pdf_path)
+        print(
+            "PDF EXISTS:",
+            os.path.exists(pdf_path)
+            if pdf_path else False
+        )
+
+        save_render_to_cache(
+            resume_v3,
+            tex_path,
+            pdf_path,
+            file_id,
+            CACHE_FOLDER
+        )
+
+        pdf_exists = (
+            pdf_path is not None
+            and
+            os.path.exists(pdf_path)
+        )
+
+        download_basename = build_download_basename(resume_v3)
+
         return jsonify({
             'success': True,
-            'file_id': file_info['file_id'],
-            'filename': file_info['tex_filename'],
-            'pdf_available': bool(file_info['pdf_filepath'])
+            'file_id': file_id,
+            'tex_filename': f"{download_basename}.tex",
+            'pdf_filename': (
+                f"{download_basename}.pdf"
+                if pdf_exists else None
+            ),
+            'download_basename': download_basename,
+            'pdf_available': pdf_exists,
+            'cached': False
         }), 200
-        
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
+        import traceback
+        traceback.print_exc()
 
-@app.route('/download-latex/<file_id>')
-def download_latex(file_id):
-    """Download LaTeX file"""
-    filename = f"resume_{file_id}.tex"
-    return send_from_directory(GENERATED_FOLDER, filename, as_attachment=True)
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
+@app.route('/download-tex/<file_id>')
+def download_tex(file_id):
+    download_name = request.args.get(
+        'download_name',
+        f"resume_{file_id}.tex"
+    )
+    return send_from_directory(
+        GENERATED_FOLDER,
+        f"resume_{file_id}.tex",
+        as_attachment=True,
+        download_name=download_name
+    )
 
 @app.route('/download-pdf/<file_id>')
 def download_pdf(file_id):
-    """Download PDF file"""
-    filename = f"resume_{file_id}.pdf"
-    return send_from_directory(GENERATED_FOLDER, filename, as_attachment=True)
-
-@app.route('/debug-latex', methods=['POST'])
-def debug_latex():
-    """Debug route - see raw LLM output"""
-    try:
-        from services.latex_service import format_resume_data, IMPROVEMENT_PROMPT
-        import os
-        from groq import Groq
-
-        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-        data = request.json
-        resume_data = data.get('resume_data')
-        data_str = format_resume_data(resume_data)
-
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-120b",
-            messages=[
-                {"role": "system", "content": IMPROVEMENT_PROMPT},
-                {"role": "user", "content": f"Improve and return this resume content:\n\n{data_str}"}
-            ],
-            temperature=0.2
-        )
-
-        raw = response.choices[0].message.content
-
-        # Return raw so you can inspect it
-        return jsonify({
-            'raw_output': raw
-        }), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
+    download_name = request.args.get(
+        'download_name',
+        f"resume_{file_id}.pdf"
+    )
+    return send_from_directory(
+        GENERATED_FOLDER,
+        f"resume_{file_id}.pdf",
+        as_attachment=True,
+        download_name=download_name
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)

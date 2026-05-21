@@ -225,8 +225,8 @@ function populateProjectsTab(projects) {
             `<span class="data-tag">${tech}</span>`
         ).join('');
 
-        const details = project.details.map(detail =>
-            `<li>${detail}</li>`
+        const bullets = (project.bullets || []).map(bullet =>
+            `<li>${bullet}</li>`
         ).join('');
 
         div.innerHTML = `
@@ -235,7 +235,7 @@ function populateProjectsTab(projects) {
                 <div class="data-meta">${project.type} • ${project.year}</div>
             </div>
             <div class="data-tags">${techTags}</div>
-            <ul class="data-details">${details}</ul>
+            <ul class="data-details">${bullets}</ul>
         `;
 
         container.appendChild(div);
@@ -250,8 +250,8 @@ function populateExperienceTab(experiences) {
         const div = document.createElement('div');
         div.className = 'data-item';
 
-        const responsibilities = exp.responsibilities.map(resp =>
-            `<li>${resp}</li>`
+        const bullets = (exp.bullets || []).map(bullet =>
+            `<li>${bullet}</li>`
         ).join('');
 
         div.innerHTML = `
@@ -259,7 +259,7 @@ function populateExperienceTab(experiences) {
                 <div class="data-title">${exp.title}</div>
                 <div class="data-meta">${exp.company} • ${exp.duration} • ${exp.type}</div>
             </div>
-            <ul class="data-details">${responsibilities}</ul>
+            <ul class="data-details">${bullets}</ul>
         `;
 
         container.appendChild(div);
@@ -334,158 +334,305 @@ const charCount = document.getElementById('charCount');
 
 let originalLatexCode = '';
 let currentFileId = null;
+let currentDownloadBasename = 'candidate_resume_ai_pack';
 
 // Download LaTeX (generates code and opens editor)
 downloadLatexBtn.addEventListener('click', async () => {
+
     if (!resumeData) return;
 
     downloadLatexBtn.disabled = true;
-    downloadLatexBtn.innerHTML = '<span class="btn-text">⏳ GENERATING...</span>';
+    downloadLatexBtn.innerHTML =
+        '<span class="btn-text">⏳ GENERATING...</span>';
+
     editorStatus.textContent = 'Generating LaTeX...';
 
     try {
-        const response = await fetch('/generate-latex', {
+
+        const response = await fetch('/enhance', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ resume_data: resumeData })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                resume: resumeData
+            })
         });
 
         const data = await response.json();
 
-        if (data.success) {
-            currentFileId = data.file_id;
+        console.log("Enhance Response:", data);
 
-            // Fetch the generated file content (.tex)
-            const fileResponse = await fetch(`/download-latex/${data.file_id}`);
-            const latexCode = await fileResponse.text();
+        if (!data.success) {
 
-            // Store original and show editor
-            originalLatexCode = latexCode;
-            latexEditor.value = latexCode;
-            updateEditorStats();
+            alert(
+                'Failed to generate LaTeX: ' +
+                (data.error || 'Unknown error')
+            );
 
-            // Show modal
-            latexModal.classList.add('show');
-            editorStatus.textContent = 'Ready to edit';
+            editorStatus.textContent = 'Generation failed';
+            return;
+        }
 
-            // Show/hide PDF download buttons based on availability
-            if (data.pdf_available) {
-                showPdfDownloadButton(data.file_id);
-                dashboardPdfBtn.style.display = 'block';
-            } else {
-                const pdfBtn = document.getElementById('downloadPdfBtn');
-                if (pdfBtn) {
-                    pdfBtn.style.display = 'none';
-                }
-                dashboardPdfBtn.style.display = 'none';
-            }
+        // Store current file ID globally
+        currentFileId = data.file_id;
+        currentDownloadBasename =
+            data.download_basename || 'candidate_resume_ai_pack';
+
+        // Fetch generated .tex content
+        const fileResponse = await fetch(
+            `/download-tex/${data.file_id}?download_name=${encodeURIComponent(data.tex_filename || `${currentDownloadBasename}.tex`)}`
+        );
+
+        if (!fileResponse.ok) {
+            throw new Error('Failed to fetch generated .tex');
+        }
+
+        const latexCode = await fileResponse.text();
+
+        // Store original code
+        originalLatexCode = latexCode;
+
+        // Populate editor
+        latexEditor.value = latexCode;
+
+        // Update stats
+        updateEditorStats();
+
+        // Open modal
+        latexModal.classList.add('show');
+
+        editorStatus.textContent = 'Ready to edit';
+
+        // -----------------------------
+        // PDF BUTTON LOGIC
+        // -----------------------------
+
+        if (data.pdf_available === true) {
+
+            console.log("PDF AVAILABLE");
+
+            showPdfDownloadButton(data.file_id);
 
         } else {
-            alert('Failed to generate LaTeX: ' + (data.error || 'Unknown error'));
-            editorStatus.textContent = 'Generation failed';
+
+            console.warn("PDF NOT AVAILABLE");
+
+            hidePdfDownloadButton();
         }
 
     } catch (err) {
+
         console.error(err);
+
         alert('Error generating files');
+
         editorStatus.textContent = 'Error';
+
     } finally {
+
         downloadLatexBtn.disabled = false;
-        downloadLatexBtn.innerHTML = '<span class="btn-text">↓ DOWNLOAD .TEX</span>';
+
+        downloadLatexBtn.innerHTML =
+            '<span class="btn-text">↓ DOWNLOAD .TEX</span>';
     }
 });
 
-// Download compiled PDF from dashboard
+
+// -----------------------------
+// DASHBOARD PDF DOWNLOAD
+// -----------------------------
+
 dashboardPdfBtn.addEventListener('click', () => {
-    if (currentFileId) {
-        window.location.href = `/download-pdf/${currentFileId}`;
+
+    if (!currentFileId) {
+        console.warn("No currentFileId available");
+        return;
     }
+
+    window.location.href =
+        `/download-pdf/${currentFileId}?download_name=${encodeURIComponent(`${currentDownloadBasename}.pdf`)}`;
 });
 
-// Close modal
+
+// -----------------------------
+// SHOW PDF BUTTON
+// -----------------------------
+
+function showPdfDownloadButton(fileId) {
+
+    const pdfBtn =
+        document.getElementById('dashboardPdfBtn');
+
+    if (!pdfBtn) {
+        console.error(
+            'dashboardPdfBtn not found'
+        );
+        return;
+    }
+
+    // Ensure global ID stays synced
+    currentFileId = fileId;
+
+    // Make visible
+    pdfBtn.style.display = 'inline-flex';
+
+    // Remove hidden state if any
+    pdfBtn.hidden = false;
+
+    pdfBtn.classList.remove('hidden');
+
+    console.log(
+        'PDF button enabled for:',
+        fileId
+    );
+}
+
+
+// -----------------------------
+// HIDE PDF BUTTON
+// -----------------------------
+
+function hidePdfDownloadButton() {
+
+    const pdfBtn =
+        document.getElementById('dashboardPdfBtn');
+
+    if (!pdfBtn) return;
+
+    pdfBtn.style.display = 'none';
+}
+
+
+// -----------------------------
+// CLOSE MODAL
+// -----------------------------
+
 closeModal.addEventListener('click', () => {
+
     latexModal.classList.remove('show');
 });
 
-// Close on overlay click
+
+// -----------------------------
+// CLOSE ON OVERLAY CLICK
+// -----------------------------
+
 latexModal.addEventListener('click', (e) => {
+
     if (e.target === latexModal) {
         latexModal.classList.remove('show');
     }
 });
 
-// Reset to original
+
+// -----------------------------
+// RESET TO ORIGINAL
+// -----------------------------
+
 resetBtn.addEventListener('click', () => {
-    if (confirm('Reset to original generated code?')) {
-        latexEditor.value = originalLatexCode;
-        updateEditorStats();
-        editorStatus.textContent = 'Reset to original';
+
+    if (!confirm(
+        'Reset to original generated code?'
+    )) {
+        return;
     }
+
+    latexEditor.value = originalLatexCode;
+
+    updateEditorStats();
+
+    editorStatus.textContent =
+        'Reset to original';
 });
 
-// Download edited version
+
+// -----------------------------
+// DOWNLOAD EDITED TEX
+// -----------------------------
+
 downloadEditedBtn.addEventListener('click', () => {
+
     const editedCode = latexEditor.value;
 
-    // Create blob and download
-    const blob = new Blob([editedCode], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const blob = new Blob(
+        [editedCode],
+        { type: 'text/plain' }
+    );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement('a');
+
     a.href = url;
-    a.download = `resume_edited_${Date.now()}.tex`;
+
+    a.download =
+        `${currentDownloadBasename}_edited.tex`;
+
     document.body.appendChild(a);
+
     a.click();
+
     document.body.removeChild(a);
+
     URL.revokeObjectURL(url);
 
-    editorStatus.textContent = 'Downloaded';
+    editorStatus.textContent =
+        'Downloaded';
+
     setTimeout(() => {
-        editorStatus.textContent = 'Ready to edit';
+
+        editorStatus.textContent =
+            'Ready to edit';
+
     }, 2000);
 });
 
-function showPdfDownloadButton(fileId) {
-    // Add PDF download button to toolbar
-    const toolbar = document.querySelector('.editor-toolbar');
 
-    let pdfBtn = document.getElementById('downloadPdfBtn');
-    if (!pdfBtn) {
-        pdfBtn = document.createElement('button');
-        pdfBtn.id = 'downloadPdfBtn';
-        pdfBtn.className = 'toolbar-btn';
-        pdfBtn.innerHTML = '↓ DOWNLOAD PDF';
-        pdfBtn.onclick = () => {
-            window.location.href = `/download-pdf/${fileId}`;
-        };
-        toolbar.insertBefore(pdfBtn, toolbar.children[2]);
-    } else {
-        // Update click handler and ensure it's visible
-        pdfBtn.onclick = () => {
-            window.location.href = `/download-pdf/${fileId}`;
-        };
-        pdfBtn.style.display = 'block';
-    }
-}
+// -----------------------------
+// LIVE EDITOR STATS
+// -----------------------------
 
-// Update editor stats on typing
 latexEditor.addEventListener('input', () => {
+
     updateEditorStats();
+
     editorStatus.textContent = 'Modified';
 });
 
+
+// -----------------------------
+// UPDATE STATS
+// -----------------------------
+
 function updateEditorStats() {
+
     const text = latexEditor.value;
-    const lines = text.split('\n').length;
-    const chars = text.length;
+
+    const lines =
+        text.split('\n').length;
+
+    const chars =
+        text.length;
 
     lineCount.textContent = lines;
+
     charCount.textContent = chars;
 }
 
-// Close modal with Escape key
+
+// -----------------------------
+// ESCAPE KEY CLOSE
+// -----------------------------
+
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && latexModal.classList.contains('show')) {
+
+    if (
+        e.key === 'Escape' &&
+        latexModal.classList.contains('show')
+    ) {
         latexModal.classList.remove('show');
     }
 });
-

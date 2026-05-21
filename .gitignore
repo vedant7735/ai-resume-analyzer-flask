@@ -7,3 +7,4 @@ pdf_to_text.py
 .venv
 cache/
 generated/
+documents/
