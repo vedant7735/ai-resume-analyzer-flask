@@ -1,10 +1,84 @@
-.env
-.gitignore
+# =========================
+# Python
+# =========================
 __pycache__/
-uploads/
-pt_to_json.py
-pdf_to_text.py
-.venv
-cache/
-generated/
-documents/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+
+# =========================
+# Flask / Runtime
+# =========================
+instance/
+*.log
+
+# =========================
+# Uploads / Generated Files
+# =========================
+uploads/*
+generated/*
+cache/*
+
+# Keep empty folders
+!uploads/.gitkeep
+!generated/.gitkeep
+!cache/.gitkeep
+
+# =========================
+# PDFs / LaTeX Outputs
+# =========================
+*.pdf
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# =========================
+# Node / React / Vite
+# =========================
+client/node_modules/
+client/dist/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDEs / Editors
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Build / Cache
+# =========================
+.pytest_cache/
+.mypy_cache/
+coverage/
+dist/
+build/
+
+# =========================
+# Archive / Experimental
+# =========================
+services/model_service/archive/
+
+# =========================
+# Temporary Files
+# =========================
+*.tmp
+*.temp
+temp.jsx

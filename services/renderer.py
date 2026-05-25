@@ -133,6 +133,11 @@ def render_to_latex(resume_v3):
         edu_tex.append(rf'\textit{{\small {escape_latex(ed.get("institution",""))}}}')
         if ed.get('gpa'):
             edu_tex.append(rf'\\ \texttt{{\small GPA: {escape_latex(ed.get("gpa",""))}}}')
+        
+        coursework = ed.get('relevant_coursework', [])
+        if coursework:
+            edu_tex.append(rf'\\ \texttt{{\small Relevant Coursework: {escape_latex(", ".join(coursework))}}}')
+
         edu_tex.append(r'\vspace{4pt}')
     edu_tex = '\n'.join(edu_tex)
 

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
@@ -8,8 +8,8 @@ from services.model_service.multimodal_extractor import (
     extract_resume,
     get_resume_input_type
 )
-from services.model_service.llm_analyzer import analyze_resume_object
-from services.model_service.llm_enhancer import enhance_resume_object
+from services.model_service.llm_call import run_single_pass
+import json
 from services.renderer import render_to_latex, compile_latex_to_pdf
 from services.cache_service import (
     get_file_hash, 
@@ -48,18 +48,22 @@ def build_download_basename(resume):
 
     return f"{safe_name}_resume_ai_pack"
 
-# Frontend routes
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/styles.css')
-def style():
-    return send_from_directory('templates', 'styles.css')
-
-@app.route('/script.js')
-def script():
-    return send_from_directory('templates', 'script.js')
+# ---------------------------------------------------------------
+# MIGRATED TO REACT — these routes are no longer served by Flask.
+# The React SPA (client/) handles all UI. Keep for reference only.
+# ---------------------------------------------------------------
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
+#
+# @app.route('/styles.css')
+# def style():
+#     return send_from_directory('templates', 'styles.css')
+#
+# @app.route('/script.js')
+# def script():
+#     return send_from_directory('templates', 'script.js')
+# ---------------------------------------------------------------
 
 # Pipeline routes
 @app.route('/upload', methods=['POST'])
@@ -77,8 +81,22 @@ def upload_file():
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
         
+        jd_text = None
+        if request.form.get("jd_text", "").strip():
+            jd_text = request.form["jd_text"].strip()
+        elif "jd_file" in request.files:
+            jd_file = request.files["jd_file"]
+            if jd_file and jd_file.filename:
+                jd_text = jd_file.read().decode("utf-8", errors="ignore").strip()
+
         input_type = get_resume_input_type(filename)
         file_hash = get_file_hash(filepath)
+        
+        if jd_text:
+            import hashlib
+            jd_hash = hashlib.sha256(jd_text.encode('utf-8')).hexdigest()
+            file_hash = f"{file_hash}_{jd_hash[:8]}"
+
         cached_v2 = get_cached_analysis(file_hash, CACHE_FOLDER)
         
         if cached_v2:
@@ -89,9 +107,14 @@ def upload_file():
                 'cached': True,
                 'input_type': input_type
             }), 200
-        
+
         resume_v1 = extract_resume(filepath, filename)
-        resume_v2 = analyze_resume_object(resume_v1)
+        # The new run_single_pass takes raw text. extract_resume returns a dict.
+        resume_v2 = run_single_pass(json.dumps(resume_v1), jd_text=jd_text)
+        
+        if jd_text is None and resume_v2.get("jd_match") is not None:
+            resume_v2["jd_match"] = None
+            
         save_to_cache(file_hash, resume_v2, CACHE_FOLDER)
         os.remove(filepath)
         
@@ -119,27 +142,9 @@ def enhance():
                 'error': 'No resume data'
             }), 400
 
-        # -----------------------------
-        # Enhancement Cache
-        # -----------------------------
-
-        cached_v3 = get_cached_enhancement(
-            resume_v2,
-            CACHE_FOLDER
-        )
-
-        resume_v3 = (
-            cached_v3
-            if cached_v3
-            else enhance_resume_object(resume_v2)
-        )
-
-        if not cached_v3:
-            save_enhancement_to_cache(
-                resume_v2,
-                resume_v3,
-                CACHE_FOLDER
-            )
+        # The new architecture unifies analyze and enhance. 
+        # resume_v2 is already enhanced from the initial upload pass.
+        resume_v3 = resume_v2
 
         # -----------------------------
         # Render Cache

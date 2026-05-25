@@ -1,147 +1,236 @@
-# AI Resume Analyzer & LaTeX Resume Enhancement Platform
+# AI Resume Analyzer & Career Intelligence Platform
 
-An AI-powered resume analysis and enhancement platform built using Flask, Groq-hosted LLMs, and a structured semantic processing pipeline.
+An AI-powered resume intelligence platform that performs:
 
-The platform extracts resume content from PDFs, converts resumes into structured JSON, performs contextual analysis and enhancement, and generates ATS-friendly LaTeX and PDF outputs.
+- layout-aware resume extraction
+- structured semantic parsing
+- AI-driven resume enhancement
+- ATS optimization
+- LaTeX resume generation
+- career analysis and role recommendations
 
----
-
-# PROJECT OVERVIEW
-
-This project is designed as a modular resume intelligence pipeline rather than a simple text analyzer.
-
-The system performs:
-
-- Layout-aware PDF parsing
-- Structured semantic extraction
-- Resume validation
-- AI-powered contextual analysis
-- Targeted resume enhancement
-- LaTeX resume rendering
-- PDF compilation
-- Editable `.tex` generation
-
-The architecture separates:
-- semantic processing
-- validation
-- enhancement
-- rendering
-
-into independent services for scalability and maintainability.
+Built using Flask, React, Groq-hosted LLMs, PyMuPDF, OCR pipelines, and a modular semantic processing architecture.
 
 ---
 
-# CORE FEATURES
+# Overview
+
+This project is designed as a **document intelligence pipeline**, not just a resume parser.
+
+The platform converts unstructured resumes into structured semantic representations, analyzes weaknesses, selectively enhances content, and generates professionally rendered ATS-friendly resumes.
+
+The system emphasizes:
+
+- structure preservation
+- selective enhancement
+- deterministic processing
+- modular architecture
+- reusable semantic layers
+
+---
+
+# Core Capabilities
 
 ## Resume Extraction
-- Layout-aware PDF extraction using PyMuPDF
-- OCR fallback support for scanned resumes
-- Section detection using font/layout heuristics
-- Structured identity extraction
-- Experience/project parsing
 
-## Structured Resume Schema
-- Canonical JSON resume format
-- JSON schema validation
-- Automatic schema repair
-- Safe LLM JSON parsing utilities
+Supports:
 
-## AI Resume Analysis
-- Professional summary generation
-- Resume scoring system
-- ATS keyword extraction
-- Strength identification
-- Improvement recommendations
-- Role recommendations
+- PDF resumes
+- scanned resumes
+- image-based resumes
 
-## AI Resume Enhancement
-- Targeted semantic enhancement
-- Selective bullet rewriting
-- Quantified achievement optimization
-- Resume content patching system
+Extraction pipeline includes:
 
-## Rendering Engine
-- JSON → LaTeX conversion
-- ATS-friendly resume templates
-- PDF compilation using `pdflatex`
-- Editable LaTeX export
-- Downloadable `.tex` and `.pdf` outputs
-
-## Frontend Dashboard
-- Drag-and-drop upload UI
-- Interactive analytics dashboard
-- Improvement accordion system
-- Detailed data tabs
-- Resume score visualization
-- Editable LaTeX modal editor
-
-## Performance Optimization
-- Multi-layer caching system
-- Cached analysis pipeline
-- Cached enhancement pipeline
-- Cached render generation
+- layout-aware parsing using PyMuPDF
+- OCR fallback using Tesseract
+- typography-based section detection
+- semantic block reconstruction
+- structured identity extraction
 
 ---
 
-# SYSTEM PIPELINE
+## Structured Resume Schema
+
+The platform converts resumes into canonical JSON objects.
+
+Features:
+
+- schema normalization
+- schema validation
+- automatic repair utilities
+- versioned resume objects
+- safe structured LLM outputs
+
+---
+
+## AI Resume Analysis
+
+The analysis engine generates:
+
+- professional summaries
+- section-level scoring
+- ATS keyword extraction
+- strengths and weaknesses
+- improvement priorities
+- realistic role recommendations
+
+---
+
+## Selective Resume Enhancement
+
+Unlike traditional resume tools, this platform avoids rewriting the entire resume.
+
+The enhancement engine:
+
+- preserves strong content
+- rewrites only weak sections
+- improves action verbs
+- enhances quantified impact
+- optimizes ATS phrasing
+- maintains factual integrity
+
+---
+
+## Career Intelligence System
+
+The platform includes career guidance capabilities such as:
+
+- role alignment analysis
+- realistic career path recommendations
+- skill gap detection
+- growth trajectory planning
+- future extensibility for market intelligence
+
+---
+
+## Rendering Engine
+
+The rendering layer converts structured resume JSON into production-ready LaTeX resumes.
+
+Features:
+
+- ATS-friendly formatting
+- automatic LaTeX escaping
+- editable `.tex` export
+- automatic PDF compilation
+- downloadable `.pdf` and `.tex` outputs
+
+---
+
+## Frontend Dashboard
+
+Interactive React dashboard featuring:
+
+- drag-and-drop uploads
+- analytics dashboard
+- section score visualization
+- improvement insights
+- resume preview
+- downloadable assets
+
+---
+
+# System Pipeline
 
 ```text
-PDF Resume
-    ↓
+Resume Upload
+(PDF / PNG / JPG)
+        ↓
 Layout-Aware Extraction
-    ↓
+        ↓
 Structured Resume JSON (v1)
-    ↓
-LLM Analysis + Validation
-    ↓
-Enhanced Resume Object (v2)
-    ↓
-Semantic Enhancement Engine
-    ↓
-Enhanced Resume Object (v3)
-    ↓
+        ↓
+Validation & Repair
+        ↓
+LLM Analysis + Enhancement
+        ↓
+Enhanced Resume JSON (v2)
+        ↓
+Career Intelligence Layer
+        ↓
 LaTeX Rendering Engine
-    ↓
+        ↓
 PDF Compilation
-    ↓
-Downloadable .tex and .pdf
+        ↓
+Downloadable Resume Package
 ```
 
 ---
 
-# TECH STACK
+# Architecture
+
+```text
+Frontend (React + Vite)
+        ↓
+Flask API Layer
+        ↓
+Extraction Pipeline
+        ↓
+Semantic Processing Layer
+        ↓
+LLM Processing Layer
+        ↓
+Enhancement Engine
+        ↓
+Rendering Engine
+        ↓
+Caching Layer
+```
+
+---
+
+# Tech Stack
 
 ## Backend
-- Python 3.x
+
+- Python 3.11+
 - Flask
 - Flask-CORS
 
-## AI & LLM Processing
+---
+
+## Frontend
+
+- React
+- Vite
+- Vanilla CSS
+
+---
+
+## AI & LLM Integration
+
 - Groq API
 - `openai/gpt-oss-120b`
-- Structured JSON prompting
+- structured JSON prompting
+- schema-constrained outputs
+
+---
 
 ## PDF & OCR Processing
+
 - PyMuPDF (`fitz`)
 - pytesseract
 - pdf2image
 
+---
+
 ## Rendering
+
 - LaTeX
 - pdflatex
-
-## Frontend
-- HTML5
-- CSS3
-- Vanilla JavaScript
-
-## Validation & Utilities
-- jsonschema
-- dotenv
+- MiKTeX / TeX Live
 
 ---
 
-# PROJECT STRUCTURE
+## Validation & Utilities
+
+- jsonschema
+- python-dotenv
+- werkzeug
+
+---
+
+# Project Structure
 
 ```text
 project_root/
@@ -150,180 +239,28 @@ project_root/
 ├── requirements.txt
 ├── README.md
 │
+├── client/
+│   ├── src/
+│   ├── public/
+│   └── vite.config.js
+│
 ├── services/
-│   ├── pdf_extractor.py
-│   ├── llm_analyzer.py
-│   ├── llm_enhancer.py
+│   ├── model_service/
+│   │   ├── multimodal_extractor.py
+│   │   ├── llm_call.py
+│   │   └── prompts/
+│   │
 │   ├── renderer.py
 │   ├── validator.py
 │   ├── cache_service.py
-│   ├── json_utils.py
-│   └── LLM_Models.py
+│   └── json_utils.py
 │
-├── templates/
-│   ├── index.html
-│   ├── styles.css
-│   └── script.js
+├── uploads/
+├── cache/
+├── generated/
 │
-├── images/
-│   ├── landing.png
-│   ├── score.png
-│   ├── summary.png
-│   └── recommendation.png
-│
-└── generated/
+└── images/
 ```
-
----
-
-# INSTALLATION
-
-## Clone Repository
-
-```bash
-git clone https://github.com/vedant7735/ai-resume-analyzer-flask.git
-cd ai-resume-analyzer-flask
-```
-
----
-
-## Create Virtual Environment
-
-```bash
-python -m venv venv
-```
-
-### Windows
-
-```bash
-venv\Scripts\activate
-```
-
-### Linux / macOS
-
-```bash
-source venv/bin/activate
-```
-
----
-
-## Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Configure Environment Variables
-
-Create a `.env` file:
-
-```env
-GROQ_API_KEY=your_api_key_here
-```
-
----
-
-# HOW TO RUN
-
-```bash
-python app.py
-```
-
-Open in browser:
-
-```text
-http://localhost:5000
-```
-
----
-
-# CURRENT MODEL CONFIGURATION
-
-Current LLM configuration:
-
-```python
-MODEL_NAME_ANALYZER = "openai/gpt-oss-120b"
-MODEL_NAME_ENHANCER = "openai/gpt-oss-120b"
-```
-
-Models can be modified inside:
-
-```text
-services/LLM_Models.py
-```
-
----
-
-# FEATURES BREAKDOWN
-
-## 1. Layout-Aware Resume Extraction
-
-The extraction layer:
-- reads PDF layout blocks
-- detects sections using typography heuristics
-- extracts semantic structure
-- builds canonical resume JSON
-
-Supports:
-- text-based PDFs
-- scanned resumes via OCR fallback
-
----
-
-## 2. Resume Validation Layer
-
-The validator:
-- enforces schema consistency
-- repairs missing fields
-- validates LLM outputs
-- prevents malformed resume objects
-
----
-
-## 3. LLM Analysis Engine
-
-The analyzer:
-- generates structured JSON
-- produces factual summaries
-- computes score breakdowns
-- extracts ATS keywords
-- identifies weaknesses
-- recommends technical roles
-
----
-
-## 4. Enhancement Engine
-
-The enhancement layer:
-- applies targeted semantic patches
-- rewrites weak bullets
-- improves action verbs
-- optimizes quantified achievements
-- avoids rewriting unchanged sections
-
----
-
-## 5. Rendering Engine
-
-The rendering system:
-- converts structured JSON into LaTeX
-- escapes unsafe LaTeX characters
-- compiles PDFs automatically
-- supports editable `.tex` export
-
----
-
-## 6. Multi-Level Cache System
-
-Caching layers:
-- analyzed resume cache
-- enhanced resume cache
-- rendered file cache
-
-This significantly reduces repeated LLM and rendering costs.
-
 ---
 
 # SCREENSHOTS
@@ -358,96 +295,238 @@ This significantly reduces repeated LLM and rendering costs.
 
 ---
 
-# API ENDPOINTS
+# Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/vedant7735/ai-resume-analyzer-flask.git
+
+cd ai-resume-analyzer-flask
+```
+
+---
+
+## Create Virtual Environment
+
+### Windows
+
+```bash
+python -m venv venv
+
+venv\Scripts\activate
+```
+
+### Linux / macOS
+
+```bash
+python -m venv venv
+
+source venv/bin/activate
+```
+
+---
+
+## Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+# Environment Variables
+
+Create a `.env` file:
+
+```env
+GROQ_API_KEY=your_api_key_here
+```
+
+---
+
+# Running the Backend
+
+```bash
+python app.py
+```
+
+Backend runs on:
+
+```text
+http://localhost:5000
+```
+
+---
+
+# Running the Frontend
+
+```bash
+cd client
+
+npm install
+
+npm run dev
+```
+
+Frontend runs on:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# API Endpoints
 
 ## `POST /upload`
 
-Accepts:
-- PDF resume upload
+Uploads and analyzes resume files.
 
-Returns:
-- analyzed resume JSON
+### Supported Formats
+
+- `.pdf`
+- `.png`
+- `.jpg`
+- `.jpeg`
+
+### Returns
+
+- structured analyzed resume JSON
+- enhancement data
+- scoring information
 
 ---
 
 ## `POST /enhance`
 
-Accepts:
-- analyzed resume object
+Generates:
 
-Returns:
-- enhanced LaTeX + downloadable files
+- LaTeX resume
+- downloadable PDF
+- editable `.tex` file
 
 ---
 
 ## `GET /download-tex/<file_id>`
 
-Downloads generated `.tex` file.
+Downloads generated LaTeX file.
 
 ---
 
 ## `GET /download-pdf/<file_id>`
 
-Downloads compiled PDF resume.
+Downloads generated PDF resume.
 
 ---
 
-# CURRENT LIMITATIONS
+# Caching System
 
-- Limited DOCX support
-- OCR quality depends on scan clarity
-- Requires installed `pdflatex`
-- Requires internet access for LLM inference
-- PDF formatting may vary across resume styles
+The platform includes multi-layer caching:
+
+- analysis cache
+- enhancement cache
+- render cache
+
+Benefits:
+
+- lower LLM costs
+- reduced latency
+- faster repeated processing
 
 ---
 
-# FUTURE IMPROVEMENTS
+# Current Features
+
+## Implemented
+
+- PDF extraction
+- OCR fallback
+- layout-aware parsing
+- structured resume schema
+- AI analysis
+- selective enhancement
+- ATS scoring
+- LaTeX generation
+- PDF compilation
+- React dashboard
+- render caching
+- downloadable assets
+
+---
+
+# Planned Improvements
 
 - Resume ↔ Job Description matching
-- Role alignment analytics
-- Multiple LaTeX templates
-- Resume version tracking
-- Batch resume processing
-- Skill gap analysis
-- Seniority estimation
-- Deployment support
+- Docker deployment
+- Redis caching
+- async job queues
+- PostgreSQL persistence
+- multiple LaTeX templates
+- market intelligence integration
+- competitive analysis
+- career graph visualization
+- CI/CD pipeline
+- observability & monitoring
+- Kubernetes deployment
 
 ---
 
-# SECURITY NOTES
+# Security Notes
 
-- Uploaded files are processed temporarily
-- API keys stored in `.env`
-- Resume data is not permanently stored
-- Generated files can be cached locally
-
----
-
-# LICENSE
-
-This project is intended for:
-- educational purposes
-- experimentation
-- internship development
-- portfolio projects
+- uploaded files are processed temporarily
+- API keys are stored using environment variables
+- generated resumes may be cached locally
+- LaTeX content is sanitized before rendering
 
 ---
 
-# AUTHOR
+# Current Limitations
 
-Vedant Vyas
+- DOCX support is limited
+- OCR accuracy depends on scan quality
+- requires local `pdflatex`
+- synchronous processing pipeline
+- large resumes may increase latency
+
+---
+
+# Development Direction
+
+This project is evolving toward a modular AI document intelligence platform with:
+
+- multimodal extraction
+- structured semantic processing
+- AI-assisted enhancement
+- career intelligence systems
+- scalable rendering architecture
+
+---
+
+# Author
 
 GitHub:
+
 https://github.com/vedant7735
 
 ---
 
-# ACKNOWLEDGEMENTS
+# License
 
+This project is intended for:
+
+- educational purposes
+- experimentation
+- internship projects
+- portfolio development
+
+---
+
+# Acknowledgements
+
+- Flask
+- React
 - Groq
 - PyMuPDF
-- pytesseract
-- Flask
-- jsonschema
-- LaTeX
+- Tesseract OCR
+- LaTeX Project

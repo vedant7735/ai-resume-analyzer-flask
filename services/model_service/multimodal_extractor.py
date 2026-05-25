@@ -22,10 +22,12 @@ VISION_MODEL_KEY = "multimodal_extraction"
 
 PDF_EXTENSIONS = {"pdf"}
 IMAGE_EXTENSIONS = {"png", "jpg", "jpeg"}
+TEXT_EXTENSIONS = {"txt", "md"}
 
 SUPPORTED_EXTENSIONS = (
     PDF_EXTENSIONS |
-    IMAGE_EXTENSIONS
+    IMAGE_EXTENSIONS |
+    TEXT_EXTENSIONS
 )
 
 # =========================================================
@@ -49,6 +51,9 @@ def get_resume_input_type(filename):
 
     if extension in IMAGE_EXTENSIONS:
         return "image"
+
+    if extension in TEXT_EXTENSIONS:
+        return "text"
 
     return "unsupported"
 
@@ -79,6 +84,13 @@ def extract_resume(file_path, original_filename=None):
         print("[ROUTER] Using OCR pipeline for image input")
 
         return extract_ocr_resume_object(file_path)
+
+    # =====================================================
+    # TEXT FLOW
+    # =====================================================
+
+    if input_type == "text":
+        return extract_text_resume_object(file_path)
 
     # =====================================================
     # INVALID TYPE
@@ -161,5 +173,25 @@ def extract_ocr_resume_object(image_path):
         {
             "input_type": "image",
             "method": "tesseract_ocr"
+        }
+    )
+
+# =========================================================
+# TEXT EXTRACTION
+# =========================================================
+
+def extract_text_resume_object(file_path):
+    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+        text = f.read()
+    
+    if not text.strip():
+        raise ValueError("Text file is empty")
+        
+    return build_resume_v1(
+        build_ocr_blocks(text),
+        text,
+        {
+            "input_type": "text",
+            "method": "raw_text"
         }
     )

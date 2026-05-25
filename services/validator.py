@@ -10,7 +10,8 @@ RESUME_SCHEMA = {
         "experience",
         "projects",
         "education",
-        "skills"
+        "skills",
+        "jd_match"
     ],
 
     "properties": {
@@ -126,6 +127,32 @@ RESUME_SCHEMA = {
 
         "analysis": {
             "type": "object"
+        },
+
+        "jd_match": {
+            "type": ["object", "null"],
+            "properties": {
+                "overall_score": {"type": "integer", "minimum": 0, "maximum": 100},
+                "matched_keywords": {"type": "array", "items": {"type": "string"}},
+                "missing_keywords": {"type": "array", "items": {"type": "string"}},
+                "role_title": {"type": "string"},
+                "company": {"type": "string"},
+                "summary": {"type": "string"},
+                "section_scores": {
+                    "type": "object",
+                    "properties": {
+                        "skills": {"type": "integer", "minimum": 0, "maximum": 100},
+                        "experience": {"type": "integer", "minimum": 0, "maximum": 100},
+                        "education": {"type": "integer", "minimum": 0, "maximum": 100},
+                        "projects": {"type": "integer", "minimum": 0, "maximum": 100}
+                    },
+                    "required": ["skills", "experience", "education", "projects"]
+                }
+            },
+            "required": [
+                "overall_score", "matched_keywords", "missing_keywords",
+                "role_title", "company", "summary", "section_scores"
+            ]
         }
     }
 }

@@ -56,7 +56,7 @@ def get_cached_enhancement(v2_object, cache_folder='cache'):
     if os.path.exists(cache_file):
         with open(cache_file, 'r', encoding='utf-8') as f:
             cached = json.load(f)
-            print(f"[Cache] ✓ v3 cache hit: {v2_hash[:8]}")
+            print(f"[Cache] [OK] v3 cache hit: {v2_hash[:8]}")
             return cached
     
     return None
@@ -72,7 +72,7 @@ def save_enhancement_to_cache(v2_object, v3_object, cache_folder='cache'):
     with open(cache_file, 'w', encoding='utf-8') as f:
         json.dump(v3_object, f, indent=2)
     
-    print(f"[Cache] ✓ v3 saved: {v2_hash[:8]}")
+    print(f"[Cache] [OK] v3 saved: {v2_hash[:8]}")
 
 
 # ===== LEVEL 3: RENDERED FILES CACHE (.tex/.pdf) =====
@@ -105,7 +105,7 @@ def get_cached_render(v3_object, cache_folder='cache'):
                     pdf_path = inferred_pdf_path
             
             if tex_path and os.path.exists(tex_path):
-                print(f"[Cache] ✓ Render cache hit: {v3_hash[:8]}")
+                print(f"[Cache] [OK] Render cache hit: {v3_hash[:8]}")
                 return {
                     'tex_path': tex_path,
                     'pdf_path': pdf_path if pdf_path and os.path.exists(pdf_path) else None,
@@ -134,7 +134,7 @@ def save_render_to_cache(v3_object, tex_path, pdf_path, file_id, cache_folder='c
     with open(metadata_file, 'w', encoding='utf-8') as f:
         json.dump(metadata, f, indent=2)
     
-    print(f"[Cache] ✓ Render saved: {v3_hash[:8]}")
+    print(f"[Cache] [OK] Render saved: {v3_hash[:8]}")
 
 
 def clear_cache(cache_folder='cache'):
@@ -148,4 +148,4 @@ def clear_cache(cache_folder='cache'):
         if os.path.isfile(filepath):
             os.remove(filepath)
     
-    print("[Cache] ✓ All cache cleared")
+    print("[Cache] [OK] All cache cleared")
