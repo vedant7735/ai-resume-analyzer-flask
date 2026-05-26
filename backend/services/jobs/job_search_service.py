@@ -2,16 +2,15 @@ import os
 import json
 from openai import OpenAI
 from groq import Groq
-from dotenv import load_dotenv
 import json_repair
 import backend.services.caching.cache_service as cache_service
 from backend.services.model_service.config.model_registry import MODEL_REGISTRY_JOB_SEARCH
+from backend.config import settings
+from backend.services.utils.retry import retry_on_exception
 from duckduckgo_search import DDGS
 
-load_dotenv()
-
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+groq_client = Groq(api_key=settings.GROQ_API_KEY)
 
 JOB_SEARCH_PROMPT = """
 You are a specialized job search AI with web search capabilities.
@@ -597,6 +596,7 @@ def fetch_api_jobs_fallback(target_role, key_skills):
         
     return jobs
 
+@retry_on_exception(retries=3, initial_delay=2.0, exception_types=(Exception,))
 def search_live_jobs(analysis_data, filters=None):
     filters = filters or {}
     
@@ -750,7 +750,8 @@ OUTPUT FORMAT — return ONLY a valid JSON object matching this schema:
                             "content": extraction_prompt
                         }
                     ],
-                    temperature=0.1
+                    temperature=0.1,
+                    timeout=60
                 )
                 raw_text = chat_response.choices[0].message.content.strip()
                 print(f"[JOB SEARCH] Raw text from LLM: '{raw_text}'")
@@ -791,10 +792,11 @@ OUTPUT FORMAT — return ONLY a valid JSON object matching this schema:
         
         try:
             response = client.responses.create(
-                model=model_to_use,
-                input=prompt,
-                tools=[{"type": "web_search"}]
-            )
+                    model=model_to_use,
+                    input=prompt,
+                    tools=[{"type": "web_search"}],
+                    timeout=60
+                )
             
             raw_output = response.output
             raw_text = ""

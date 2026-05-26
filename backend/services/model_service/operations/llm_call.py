@@ -1,12 +1,13 @@
 import os
 import json
+import json_repair
 from openai import OpenAI
-from dotenv import load_dotenv
+
+from backend.config import settings
 from backend.services.model_service.config.LLM_Models import MODEL_ROUTER
+from backend.services.utils.retry import retry_on_exception
 
-load_dotenv()
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 ANALYZER_ENHANCER_PROMPT = """
 You are a resume quality engine and career analyst.
@@ -363,9 +364,10 @@ def build_user_message(raw_text: str, jd_text: str = None) -> str:
     return message
 
 
+@retry_on_exception(retries=3, initial_delay=2.0, exception_types=(Exception,))
 def run_single_pass(raw_text: str, jd_text: str = None) -> dict:
     """
-    Single LLM pass.
+    Single LLM pass with retry, timeout, and json-repair fallback.
     Receives clean extracted resume text.
     Returns enhanced resume as parsed dict.
     """
@@ -385,7 +387,8 @@ def run_single_pass(raw_text: str, jd_text: str = None) -> dict:
                     "content": user_message
                 }
             ],
-            temperature=0.2
+            temperature=0.2,
+            timeout=60
         )
 
         usage = response.usage
@@ -406,11 +409,16 @@ def run_single_pass(raw_text: str, jd_text: str = None) -> dict:
                 raw_output = raw_output[4:]
             raw_output = raw_output.strip()
 
-        enhanced_resume = json.loads(raw_output)
+        try:
+            enhanced_resume = json.loads(raw_output)
+        except json.JSONDecodeError:
+            print("[LLM Call] json.loads failed - attempting json_repair fallback...")
+            enhanced_resume = json_repair.loads(raw_output)
+            
+        if not isinstance(enhanced_resume, dict):
+            raise ValueError("Parsed output is not a JSON object/dict")
+            
         return enhanced_resume
-
-    except json.JSONDecodeError as e:
-        raise ValueError(f"LLM returned invalid JSON: {str(e)}")
 
     except Exception as e:
         raise RuntimeError(f"LLM call failed: {str(e)}")

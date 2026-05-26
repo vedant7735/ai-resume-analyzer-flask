@@ -1,10 +1,15 @@
 from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from werkzeug.utils import secure_filename
 import os
 import json
 import hashlib
+from pathlib import Path
 
+from backend.config import settings
+from backend.services.utils.errors import register_error_handlers
 from backend.services.model_service.extractors.multimodal_extractor import (
     SUPPORTED_EXTENSIONS,
     extract_resume,
@@ -24,15 +29,29 @@ from backend.services.caching.cache_service import (
 )
 
 app = Flask(__name__)
-CORS(app)
 
-UPLOAD_FOLDER = 'backend/uploads'
-CACHE_FOLDER = 'backend/cache'
-GENERATED_FOLDER = 'backend/generated'
+# Register structured API error handlers
+register_error_handlers(app)
+
+# Configure CORS with settings-based origins
+CORS(app, origins=settings.CORS_ORIGINS)
+
+# Setup Flask-Limiter for rate limiting
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
+BASE_DIR = Path(__file__).resolve().parent
+UPLOAD_FOLDER = str(BASE_DIR / 'backend' / 'uploads')
+CACHE_FOLDER = str(BASE_DIR / 'backend' / 'cache')
+GENERATED_FOLDER = str(BASE_DIR / 'backend' / 'generated')
 ALLOWED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB limit
 
 for folder in [UPLOAD_FOLDER, CACHE_FOLDER, GENERATED_FOLDER]:
     os.makedirs(folder, exist_ok=True)
@@ -67,8 +86,14 @@ def build_download_basename(resume):
 #     return send_from_directory('templates', 'script.js')
 # ---------------------------------------------------------------
 
+# Health check endpoint
+@app.route('/health')
+def health():
+    return jsonify({'status': 'healthy'}), 200
+
 # Pipeline routes
 @app.route('/upload', methods=['POST'])
+@limiter.limit("10 per minute")
 def upload_file():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
@@ -133,6 +158,7 @@ def upload_file():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/find-jobs', methods=['POST'])
+@limiter.limit("5 per minute")
 def find_jobs():
     try:
         analysis_data = request.json.get('analysis_data')
@@ -160,6 +186,7 @@ def find_jobs():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/enhance', methods=['POST'])
+@limiter.limit("10 per minute")
 def enhance():
 
     try:

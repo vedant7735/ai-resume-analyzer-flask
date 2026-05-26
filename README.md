@@ -459,6 +459,58 @@ http://localhost:5173
 
 ---
 
+# Running with Docker Compose
+
+For a fully containerized setup that handles all backend (with minimal TeX Live libraries) and frontend configurations automatically, you can use Docker Compose.
+
+## 1. Environment Configuration
+
+Ensure you have your `.env` file populated at the project root with your API keys:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+OPENAI_API_KEY=your_openai_api_key
+SECRET_KEY=your_custom_secret_key_or_leave_empty_for_dynamic_generation
+FLASK_ENV=production
+CORS_ORIGINS=http://localhost:5173
+```
+
+## 2. Boot Up Containers
+
+Run the following command at the root of the repository to build and start both services:
+
+```bash
+docker compose up --build -d
+```
+
+The services will initialize:
+- **Frontend Container**: Accessible at [http://localhost:5173](http://localhost:5173) (automatically proxies `/upload`, `/enhance`, `/find-jobs` etc. to the backend container).
+- **Backend Container**: Accessible at [http://localhost:5000](http://localhost:5000) (running under Gunicorn). Includes the health check endpoint `/health`.
+
+## 3. Check Status and Logs
+
+To check if containers are running:
+
+```bash
+docker compose ps
+```
+
+To view real-time logs from both containers:
+
+```bash
+docker compose logs -f
+```
+
+To stop the containers:
+
+```bash
+docker compose down
+```
+
+---
+
+---
+
 # API Endpoints
 
 ## `POST /upload`
