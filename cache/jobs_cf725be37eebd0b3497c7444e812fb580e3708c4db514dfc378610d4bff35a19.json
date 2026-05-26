@@ -1,0 +1,98 @@
+{
+  "jobs": [
+    {
+      "title": "DevOps Engineer",
+      "company": "Interop Labs",
+      "location": "Remote",
+      "remote": true,
+      "salary": null,
+      "posted_days_ago": 1,
+      "url": "https://weworkremotely.com/remote-jobs/interop-labs-devops-engineer",
+      "requirements": [
+        "Python"
+      ],
+      "match_score": 90,
+      "match_reasons": [
+        "Matches 1 skills (Python)",
+        "Strong role match",
+        "Preferred Work Mode"
+      ]
+    },
+    {
+      "title": "DevOps Engineer",
+      "company": "Hrtx",
+      "location": "Remote",
+      "remote": true,
+      "salary": null,
+      "posted_days_ago": 1,
+      "url": "https://weworkremotely.com/remote-jobs/hrtx-devops-engineer",
+      "requirements": [
+        "Python"
+      ],
+      "match_score": 90,
+      "match_reasons": [
+        "Matches 1 skills (Python)",
+        "Strong role match",
+        "Preferred Work Mode"
+      ]
+    },
+    {
+      "title": "DevOps Engineer (m/f/d)",
+      "company": "World Data Lab",
+      "location": "Remote",
+      "remote": true,
+      "salary": null,
+      "posted_days_ago": 1,
+      "url": "https://weworkremotely.com/remote-jobs/world-data-lab-devops-engineer-m-f-d",
+      "requirements": [
+        "Python",
+        "SQL"
+      ],
+      "match_score": 90,
+      "match_reasons": [
+        "Matches 2 skills (Python, SQL)",
+        "Strong role match",
+        "Preferred Work Mode"
+      ]
+    },
+    {
+      "title": "DevOps Engineer",
+      "company": "Clo Virtual Fashion",
+      "location": "Remote",
+      "remote": true,
+      "salary": null,
+      "posted_days_ago": 1,
+      "url": "https://weworkremotely.com/remote-jobs/clo-virtual-fashion-devops-engineer",
+      "requirements": [],
+      "match_score": 70,
+      "match_reasons": [
+        "Strong role match",
+        "Preferred Work Mode"
+      ]
+    },
+    {
+      "title": "DevOps Engineer",
+      "company": "Confidential",
+      "location": "Remote",
+      "remote": true,
+      "salary": null,
+      "posted_days_ago": 1,
+      "url": "https://weworkremotely.com/remote-jobs/confidential-devops-engineer",
+      "requirements": [],
+      "match_score": 70,
+      "match_reasons": [
+        "Strong role match",
+        "Preferred Work Mode"
+      ]
+    }
+  ],
+  "relaxed_filters": false,
+  "applied_filters": {
+    "locations": [
+      "India"
+    ],
+    "workModes": [
+      "Remote"
+    ]
+  }
+}

@@ -1,17 +1,19 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
+import json
+import hashlib
 
-from services.model_service.multimodal_extractor import (
+from backend.services.model_service.extractors.multimodal_extractor import (
     SUPPORTED_EXTENSIONS,
     extract_resume,
     get_resume_input_type
 )
-from services.model_service.llm_call import run_single_pass
-import json
-from services.renderer import render_to_latex, compile_latex_to_pdf
-from services.cache_service import (
+from backend.services.model_service.operations.llm_call import run_single_pass
+from backend.services.jobs.job_search_service import search_live_jobs
+from backend.services.rendering.renderer import render_to_latex, compile_latex_to_pdf
+from backend.services.caching.cache_service import (
     get_file_hash, 
     get_cached_analysis, 
     save_to_cache,
@@ -24,9 +26,9 @@ from services.cache_service import (
 app = Flask(__name__)
 CORS(app)
 
-UPLOAD_FOLDER = 'uploads'
-CACHE_FOLDER = 'cache'
-GENERATED_FOLDER = 'generated'
+UPLOAD_FOLDER = 'backend/uploads'
+CACHE_FOLDER = 'backend/cache'
+GENERATED_FOLDER = 'backend/generated'
 ALLOWED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -128,6 +130,33 @@ def upload_file():
     except Exception as e:
         if filepath and os.path.exists(filepath):
             os.remove(filepath)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/find-jobs', methods=['POST'])
+def find_jobs():
+    try:
+        analysis_data = request.json.get('analysis_data')
+        filters = request.json.get('filters', {})
+        if not analysis_data:
+            return jsonify({'error': 'No analysis data provided'}), 400
+            
+        result = search_live_jobs(analysis_data, filters)
+        
+        # result is a dict: {jobs, relaxed_filters, applied_filters}
+        # Handle legacy list returns just in case
+        if isinstance(result, list):
+            result = {'jobs': result, 'relaxed_filters': False, 'applied_filters': {}}
+        
+        return jsonify({
+            'success': True,
+            'jobs': result.get('jobs', []),
+            'relaxed_filters': result.get('relaxed_filters', False),
+            'applied_filters': result.get('applied_filters', {})
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/enhance', methods=['POST'])
@@ -232,6 +261,34 @@ def enhance():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/compile-latex', methods=['POST'])
+def compile_latex():
+    try:
+        latex_code = request.json.get('latex_code')
+        if not latex_code:
+            return jsonify({'error': 'No LaTeX code provided'}), 400
+
+        tex_path, pdf_path, file_id = compile_latex_to_pdf(
+            latex_code,
+            GENERATED_FOLDER
+        )
+
+        pdf_exists = pdf_path is not None and os.path.exists(pdf_path)
+
+        return jsonify({
+            'success': True,
+            'file_id': file_id,
+            'tex_filename': f"resume_{file_id}.tex",
+            'pdf_filename': f"resume_{file_id}.pdf" if pdf_exists else None,
+            'download_basename': f"resume_{file_id}",
+            'pdf_available': pdf_exists,
+        }), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/download-tex/<file_id>')
 def download_tex(file_id):

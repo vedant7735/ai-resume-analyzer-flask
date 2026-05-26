@@ -155,6 +155,46 @@ PDF Compilation
 Downloadable Resume Package
 ```
 
+## Pipeline Data Flow & CLI Workflows
+
+This section outlines how data moves sequentially through the pipeline, from raw files to final PDFs and live job listings, and how you can trigger or inspect each stage using terminal workflows.
+
+### 1. Document Extraction & Parsing
+* **Data Flow**: The uploaded resume (PDF/Image/Text) is parsed in `backend/services/extraction/pdf_extractor.py`. It runs a layout-aware extraction using PyMuPDF (or OCR fallback using Tesseract) and formats the text into a version 1 schema structure with extracted `identity`, `experience`, and `projects`.
+* **CLI Testing**: You can test the prompt context creation and formatting from your terminal:
+  ```bash
+  python -X utf8 scratch/test_prompt_context.py
+  ```
+
+### 2. LLM-Based Analysis & Enhancement
+* **Data Flow**: The Flask server sends the parsed v1 schema plus the job description (if provided) to the LLM via `backend/services/model_service/operations/llm_call.py`. The LLM evaluates resume weaknesses, rewrites weak action bullets, performs competitive career gap checks, and returns a verified v2 schema with full `analysis` metrics.
+* **CLI Testing (cURL)**: You can mock a resume upload and analysis pass from the command line:
+  ```bash
+  curl -X POST http://localhost:5000/upload \
+    -F "file=@/path/to/resume.pdf" \
+    -F "jd_text=Looking for a Python Developer with Docker experience."
+  ```
+
+### 3. Caching
+* **Data Flow**: The analysis result is cached inside `backend/services/caching/cache_service.py` under the `backend/cache/` directory, using a unique SHA-256 hash derived from the resume file content and job description. Subsequent requests resolve instantly from the cache, reducing API latency and LLM costs.
+
+### 4. Live Job Matching & Currency Normalization
+* **Data Flow**: When filters are set in the UI, `backend/services/jobs/job_search_service.py` is invoked. It generates an LLM-assisted search query, pulls live jobs from the web, and detects/parses global salary values (USD, GBP, EUR, AUD, CAD, SGD, AED, INR). It converts all figures into a unified Lakhs Per Annum (LPA) equivalent to rank matching relevance.
+* **CLI Testing**:
+  * Run the salary bounds parser and currency converter against multiple formats:
+    ```bash
+    python -X utf8 scratch/test_salary.py
+    ```
+  * Trigger a manual job search check via cURL:
+    ```bash
+    curl -X POST http://localhost:5000/find-jobs \
+      -H "Content-Type: application/json" \
+      -d '{"analysis_data": {"skills": {"technical": ["python", "flask"]}}, "filters": {"locations": ["Remote"], "salaryMin": "80"}}'
+    ```
+
+### 5. LaTeX Rendering & PDF Generation
+* **Data Flow**: The enhanced resume JSON is mapped into standard LaTeX templates in `backend/services/rendering/renderer.py`. The backend runs local `pdflatex` compilation to output a beautifully formatted, ATS-compliant PDF along with the raw editable `.tex` code in the `backend/generated/` folder.
+
 ---
 
 # Architecture
@@ -238,26 +278,59 @@ project_root/
 ├── app.py
 ├── requirements.txt
 ├── README.md
+├── .gitignore
+├── .env
 │
-├── client/
+├── frontend/
 │   ├── src/
-│   ├── public/
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   │   ├── JobFilters.jsx
+│   │   │   │   └── JobMatchTable.jsx
+│   │   │   └── ThemeToggle.jsx
+│   │   ├── views/
+│   │   │   ├── career/
+│   │   │   └── FindJobsView.jsx
+│   │   └── main.jsx
 │   └── vite.config.js
 │
-├── services/
-│   ├── model_service/
-│   │   ├── multimodal_extractor.py
-│   │   ├── llm_call.py
-│   │   └── prompts/
+├── backend/
+│   ├── __init__.py
 │   │
-│   ├── renderer.py
-│   ├── validator.py
-│   ├── cache_service.py
-│   └── json_utils.py
-│
-├── uploads/
-├── cache/
-├── generated/
+│   ├── services/
+│   │   ├── __init__.py
+│   │   │
+│   │   ├── caching/
+│   │   │   ├── __init__.py
+│   │   │   └── cache_service.py
+│   │   │
+│   │   ├── extraction/
+│   │   │   ├── __init__.py
+│   │   │   ├── pdf_extractor.py
+│   │   │   ├── json_utils.py
+│   │   │   └── validator.py
+│   │   │
+│   │   ├── jobs/
+│   │   │   ├── __init__.py
+│   │   │   └── job_search_service.py
+│   │   │
+│   │   ├── model_service/
+│   │   │   ├── __init__.py
+│   │   │   ├── config/
+│   │   │   │   ├── LLM_Models.py
+│   │   │   │   ├── model_registry.py
+│   │   │   │   └── capability_routing.py
+│   │   │   ├── extractors/
+│   │   │   └── operations/
+│   │   │       └── llm_call.py
+│   │   │
+│   │   └── rendering/
+│   │       ├── __init__.py
+│   │       └── renderer.py
+│   │
+│   ├── uploads/
+│   ├── cache/
+│   └── generated/
 │
 └── images/
 ```
@@ -266,34 +339,43 @@ project_root/
 # SCREENSHOTS
 
 ## Landing Page
-
-![Landing Page](images/v2/landing.png)
+![Landing Page](images/v3/landingpage.png)
 
 ---
 
 ## Analysis Dashboard
-
 ![Dashboard](images/v2/score.png)
 
 ---
 
 ## LaTeX Editor
-
 ![Latex Editor](images/v2/texeditor.png)
 
 ---
 
 ## Professional Summary
-
 ![Summary](images/v2/summary.png)
 
 ---
 
-## Recommendations
-
-![Recommendations](images/v2/recommendation.png)
+## Career Progression Paths
+![Career Paths](images/v2/career_paths.png)
 
 ---
+
+## Interactive Career Graph
+![Career Graph](images/v2/career_graph.png)
+
+---
+
+## Competitive Gap Analysis
+![Competitive Analysis](images/v2/competitive_analysis.png)
+
+---
+
+## Live Job Market Matcher
+![Job Search](images/v2/job_search.png)
+
 
 # Installation
 
@@ -362,7 +444,7 @@ http://localhost:5000
 # Running the Frontend
 
 ```bash
-cd client
+cd frontend
 
 npm install
 

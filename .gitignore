@@ -19,18 +19,22 @@ env/
 # =========================
 instance/
 *.log
+scratch/*.md
+repomix-output.md
+weakness.md
+PR.md
 
 # =========================
 # Uploads / Generated Files
 # =========================
-uploads/*
-generated/*
-cache/*
+backend/uploads/*
+backend/generated/*
+backend/cache/*
 
 # Keep empty folders
-!uploads/.gitkeep
-!generated/.gitkeep
-!cache/.gitkeep
+!backend/uploads/.gitkeep
+!backend/generated/.gitkeep
+!backend/cache/.gitkeep
 
 # =========================
 # PDFs / LaTeX Outputs
@@ -47,8 +51,8 @@ cache/*
 # =========================
 # Node / React / Vite
 # =========================
-client/node_modules/
-client/dist/
+frontend/node_modules/
+frontend/dist/
 
 # =========================
 # OS Files
@@ -74,7 +78,7 @@ build/
 # =========================
 # Archive / Experimental
 # =========================
-services/model_service/archive/
+backend/services/model_service/archive/
 
 # =========================
 # Temporary Files
