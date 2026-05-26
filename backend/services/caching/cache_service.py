@@ -21,7 +21,7 @@ def get_object_hash(obj):
 
 # ===== LEVEL 1: ANALYZED RESUME CACHE (v2) =====
 
-def get_cached_analysis(file_hash, cache_folder='cache'):
+def get_cached_analysis(file_hash, cache_folder='backend/cache'):
     """Get cached v2 (analyzed resume) by PDF hash"""
     
     os.makedirs(cache_folder, exist_ok=True)
@@ -34,7 +34,7 @@ def get_cached_analysis(file_hash, cache_folder='cache'):
     return None
 
 
-def save_to_cache(file_hash, data, cache_folder='cache'):
+def save_to_cache(file_hash, data, cache_folder='backend/cache'):
     """Save v2 (analyzed resume) to cache"""
     
     os.makedirs(cache_folder, exist_ok=True)
@@ -46,7 +46,7 @@ def save_to_cache(file_hash, data, cache_folder='cache'):
 
 # ===== LEVEL 2: ENHANCED RESUME CACHE (v3) =====
 
-def get_cached_enhancement(v2_object, cache_folder='cache'):
+def get_cached_enhancement(v2_object, cache_folder='backend/cache'):
     """Get cached v3 (enhanced resume) by v2 hash"""
     
     os.makedirs(cache_folder, exist_ok=True)
@@ -62,7 +62,7 @@ def get_cached_enhancement(v2_object, cache_folder='cache'):
     return None
 
 
-def save_enhancement_to_cache(v2_object, v3_object, cache_folder='cache'):
+def save_enhancement_to_cache(v2_object, v3_object, cache_folder='backend/cache'):
     """Save v3 (enhanced resume) to cache"""
     
     os.makedirs(cache_folder, exist_ok=True)
@@ -77,7 +77,7 @@ def save_enhancement_to_cache(v2_object, v3_object, cache_folder='cache'):
 
 # ===== LEVEL 3: RENDERED FILES CACHE (.tex/.pdf) =====
 
-def get_cached_render(v3_object, cache_folder='cache'):
+def get_cached_render(v3_object, cache_folder='backend/cache'):
     """
     Get cached .tex/.pdf files by v3 hash.
     Returns dict with tex_path, pdf_path, file_id or None.
@@ -117,7 +117,7 @@ def get_cached_render(v3_object, cache_folder='cache'):
     return None
 
 
-def save_render_to_cache(v3_object, tex_path, pdf_path, file_id, cache_folder='cache'):
+def save_render_to_cache(v3_object, tex_path, pdf_path, file_id, cache_folder='backend/cache'):
     """Save .tex/.pdf file metadata to cache"""
     
     os.makedirs(cache_folder, exist_ok=True)
@@ -137,7 +137,7 @@ def save_render_to_cache(v3_object, tex_path, pdf_path, file_id, cache_folder='c
     print(f"[Cache] [OK] Render saved: {v3_hash[:8]}")
 
 
-def clear_cache(cache_folder='cache'):
+def clear_cache(cache_folder='backend/cache'):
     """Clear all cached files (admin/maintenance)"""
     
     if not os.path.exists(cache_folder):
@@ -152,7 +152,7 @@ def clear_cache(cache_folder='cache'):
 
 # ===== LEVEL 4: JOB SEARCH CACHE =====
 
-def get_cached_jobs(analysis_data, filters, cache_folder='cache'):
+def get_cached_jobs(analysis_data, filters, cache_folder='backend/cache'):
     """Get cached jobs by analysis data and filters hash.
     
     Returns a dict with keys: jobs, relaxed_filters, applied_filters.
@@ -174,7 +174,7 @@ def get_cached_jobs(analysis_data, filters, cache_folder='cache'):
             
     return None
 
-def save_jobs_to_cache(analysis_data, filters, jobs, cache_folder='cache'):
+def save_jobs_to_cache(analysis_data, filters, jobs, cache_folder='backend/cache'):
     """Save jobs to cache"""
     os.makedirs(cache_folder, exist_ok=True)
     combined = {"analysis": analysis_data, "filters": filters}

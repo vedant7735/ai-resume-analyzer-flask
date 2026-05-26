@@ -19,7 +19,7 @@ env/
 # =========================
 instance/
 *.log
-scratch/*.md
+scratch/
 repomix-output.md
 weakness.md
 PR.md
@@ -30,6 +30,7 @@ PR.md
 backend/uploads/*
 backend/generated/*
 backend/cache/*
+cache/
 
 # Keep empty folders
 !backend/uploads/.gitkeep

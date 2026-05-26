@@ -344,37 +344,37 @@ project_root/
 ---
 
 ## Analysis Dashboard
-![Dashboard](images/v2/score.png)
+![Dashboard](images/v3/Analysis/analysis_report.png)
 
 ---
 
-## LaTeX Editor
-![Latex Editor](images/v2/texeditor.png)
+## Analysis Summary & Scoring
+![Analysis Summary](images/v3/Analysis/analysis_summary.png)
 
 ---
 
-## Professional Summary
-![Summary](images/v2/summary.png)
+## LaTeX & Markdown Dual Editor
+![LaTeX Dual Editor](images/v3/Editor/dual_editor.png)
 
 ---
 
 ## Career Progression Paths
-![Career Paths](images/v2/career_paths.png)
+![Career Paths](images/v3/Career/career_paths.png)
 
 ---
 
 ## Interactive Career Graph
-![Career Graph](images/v2/career_graph.png)
+![Career Graph](images/v3/Career/career_graph.png)
 
 ---
 
-## Competitive Gap Analysis
-![Competitive Analysis](images/v2/competitive_analysis.png)
+## Target Role Gap Analysis
+![Target Role Gap Analysis](images/v3/Analysis/analysis_JD.png)
 
 ---
 
 ## Live Job Market Matcher
-![Job Search](images/v2/job_search.png)
+![Job Search](images/v3/Find%20Jobs/filtered.png)
 
 
 # Installation
